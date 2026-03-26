@@ -1,0 +1,265 @@
+/* Auth.css - ClearCoin + תיקון לייבלים + התאמה למובייל */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Heebo:wght@300;400;700&display=swap');
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    cursor: none;
+    background-color: #01040a;
+}
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    font-family: 'Poppins', 'Heebo', sans-serif;
+    perspective: 1000px;
+    padding: 20px; /* מרווח למובייל */
+    box-sizing: border-box;
+}
+
+/* רקע גיאומטרי משולב עם סקיצת אשראי רשת */
+.auth-container::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background-image:
+            radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.08) 0%, transparent 70%),
+            repeating-linear-gradient(135deg, rgba(10, 15, 30, 0.4) 0px, rgba(10, 15, 30, 0.4) 1px, transparent 1px, transparent 10px),
+            repeating-linear-gradient(45deg, rgba(10, 15, 30, 0.4) 0px, rgba(10, 15, 30, 0.4) 1px, transparent 1px, transparent 10px);
+    background-size: cover, 60px 60px, 60px 60px;
+    animation: background-pan 60s linear infinite;
+    z-index: 0;
+}
+
+@keyframes background-pan {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+}
+
+/* אלמנטים פיננסיים מרחפים ברקע */
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.float-item {
+    position: absolute;
+    color: rgba(0, 243, 255, 0.15);
+    font-size: 3rem;
+    font-weight: bold;
+    filter: blur(2px);
+    animation: float-around 15s ease-in-out infinite alternate;
+}
+
+.float-1 { top: 15%; left: 15%; animation-duration: 20s; font-size: 5rem; }
+.float-2 { top: 70%; left: 10%; animation-duration: 25s; }
+.float-3 { top: 20%; right: 20%; animation-duration: 18s; font-size: 4rem; }
+.float-4 { top: 60%; right: 15%; animation-duration: 22s; font-size: 6rem; opacity: 0.1; }
+.float-5 { top: 80%; left: 50%; animation-duration: 19s; }
+.float-6 { top: 10%; left: 50%; animation-duration: 24s; }
+
+@keyframes float-around {
+    0% { transform: translateY(0) rotate(0deg) scale(1); }
+    100% { transform: translateY(-40px) rotate(15deg) scale(1.1); }
+}
+
+/* מעטפת התלת ממד שמקבלת את הזוויות מהעכבר */
+.tilt-wrapper {
+    position: relative;
+    z-index: 10;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 440px;
+}
+
+/* --- כותרת CLEARCOIN עם אפקט ברק --- */
+.cyber-title {
+    font-size: 3rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 25px;
+    letter-spacing: 5px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0, 243, 255, 0.5);
+    background: linear-gradient(90deg, rgba(0, 243, 255, 0.2), #ffffff, rgba(0, 243, 255, 0.2));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: lightning-text 3s linear infinite, flash-text 5s infinite;
+    transform: translateZ(30px);
+}
+
+@keyframes lightning-text {
+    0% { background-position: 200% center; }
+    100% { background-position: -200% center; }
+}
+@keyframes flash-text {
+    0%, 95%, 98% { text-shadow: none; }
+    96%, 99% { text-shadow: 0 0 20px #00f3ff, 0 0 40px #00f3ff; -webkit-text-stroke: 2px #00f3ff; }
+}
+
+/* החלון הראשי */
+.auth-card {
+    background: rgba(8, 12, 25, 0.85); /* מעט יותר אטום כדי שהלייבל ישתלב טוב */
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(0, 243, 255, 0.15);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 243, 255, 0.05);
+    padding: 50px 45px 40px 45px;
+    border-radius: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    transform: translateZ(10px);
+}
+
+.bsd-text { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: rgba(136, 146, 176, 0.6); }
+
+.auth-card h2 {
+    font-size: 2.2rem; margin-bottom: 30px; color: #ffffff;
+    letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+/* --- תיקון השדות והלייבלים --- */
+.input-group {
+    position: relative;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+/* עטיפה פנימית שעליה חל חיתוך הברק (overflow) */
+.input-wrapper {
+    position: relative;
+    border-radius: 14px;
+    padding: 2px;
+    overflow: hidden; /* חותך את הברק במדויק */
+}
+
+.input-lightning {
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: conic-gradient(
+            transparent, transparent, transparent,
+            #00f3ff
+    );
+    animation: spin-lightning 4s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.input-group:hover .input-lightning,
+.input-group:focus-within .input-lightning {
+    opacity: 1;
+}
+
+.input-group:nth-child(1) .input-lightning { animation-duration: 3s; animation-direction: reverse; }
+.input-group:nth-child(2) .input-lightning { animation-duration: 5s; }
+.input-group:nth-child(3) .input-lightning { animation-duration: 2.5s; animation-direction: reverse; }
+
+@keyframes spin-lightning {
+    100% { transform: rotate(360deg); }
+}
+
+.input-group input {
+    width: 100%; box-sizing: border-box;
+    padding: 16px 15px 16px 45px;
+    background: #040914;
+    border: 1px solid rgba(100, 120, 150, 0.2);
+    border-radius: 12px;
+    color: #00f3ff; font-size: 1.05rem;
+    position: relative; z-index: 2;
+    outline: none;
+}
+
+.input-group input:focus {
+    background: #070d1c;
+    box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+/* הלייבל עכשיו יושב בחוץ, מעל הכל, ולא נחתך */
+.input-group label {
+    position: absolute; right: 20px; top: -10px;
+    background: #0b101f; /* מתאים בדיוק לצבע של הכרטיס מאחור */
+    padding: 0 8px; font-size: 0.8rem;
+    color: #8892b0; border-radius: 4px; font-weight: 600;
+    z-index: 10;
+}
+
+.auth-btn {
+    width: 100%; padding: 18px; margin-top: 10px;
+    background: linear-gradient(135deg, rgba(0, 243, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%);
+    border: 1px solid rgba(0, 243, 255, 0.5); color: #00f3ff;
+    font-size: 1.2rem; font-weight: 700; border-radius: 14px;
+    cursor: none; letter-spacing: 2px;
+    transition: all 0.3s; position: relative; overflow: hidden;
+}
+
+.auth-btn:hover {
+    background: #00f3ff; color: #01040a;
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.8);
+    transform: scale(1.02);
+}
+
+.error-msg { color: #ff3366; text-shadow: 0 0 10px rgba(255, 51, 102, 0.5); margin-bottom: 20px; font-weight: bold; }
+.toggle-link { display: inline-block; margin-top: 25px; color: #8892b0; cursor: none; text-decoration: none; transition: color 0.3s; }
+.toggle-link:hover { color: #fff; text-shadow: 0 0 10px #fff; }
+
+.cursor-glow {
+    position: fixed; width: 20px; height: 20px;
+    border-radius: 50%; background: #00f3ff;
+    box-shadow: 0 0 15px #00f3ff, 0 0 30px #00f3ff;
+    transform: translate(-50%, -50%);
+    pointer-events: none; z-index: 9999;
+    transition: transform 0.05s ease;
+}
+
+/* =========================================
+   התאמה למובייל (רספונסיביות - מסכים קטנים)
+   ========================================= */
+@media (max-width: 768px) {
+    html, body {
+        cursor: auto; /* מחזיר עכבר רגיל (אצבע) במובייל */
+    }
+    .cursor-glow {
+        display: none; /* מסתיר את כדור האור במובייל כי אין עכבר */
+    }
+    .auth-btn, .toggle-link {
+        cursor: pointer; /* כפתורים לחיצים כרגיל */
+    }
+    .cyber-title {
+        font-size: 2rem;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
+    .auth-card {
+        padding: 40px 25px 30px 25px;
+    }
+    .auth-card h2 {
+        font-size: 1.8rem;
+    }
+    /* הקטנת סמלים צפים כדי שלא יסתירו בנייד */
+    .float-item {
+        font-size: 2rem !important;
+    }
+    .float-4 { /* מסתיר את כרטיס האשראי הענק שתופס מלא מקום */
+        display: none;
+    }
+}
