@@ -1,15 +1,9 @@
 /* Auth.css - ClearCoin + תיקון לייבלים + התאמה למובייל */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Heebo:wght@300;400;700&display=swap');
 
-html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    cursor: none;
-    background-color: #01040a;
-}
-
+html, body { margin: 0; padding: 0; overflow-x: hidden; background-color: #01040a; } /* הורדנו מפה את ה-cursor: none */
 .auth-container {
+    cursor: none;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -261,5 +255,55 @@ html, body {
     }
     .float-4 { /* מסתיר את כרטיס האשראי הענק שתופס מלא מקום */
         display: none;
+    }
+}
+/* =========================================
+   מערכת התראות - Cyber Toast
+   ========================================= */
+.cyber-toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    z-index: 10000;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    letter-spacing: 1px;
+}
+
+/* עיצוב הצלחה (טורקיז) */
+.cyber-toast.success {
+    background: rgba(0, 243, 255, 0.15);
+    border: 1px solid #00f3ff;
+    color: #ffffff;
+    text-shadow: 0 0 10px #00f3ff;
+    box-shadow: 0 10px 30px rgba(0, 243, 255, 0.3), inset 0 0 15px rgba(0, 243, 255, 0.1);
+}
+
+/* עיצוב שגיאה (אדום/ורוד) */
+.cyber-toast.error {
+    background: rgba(255, 51, 102, 0.15);
+    border: 1px solid #ff3366;
+    color: #ffffff;
+    text-shadow: 0 0 10px #ff3366;
+    box-shadow: 0 10px 30px rgba(255, 51, 102, 0.3), inset 0 0 15px rgba(255, 51, 102, 0.1);
+}
+
+/* אנימציית קפיצה מלמטה */
+@keyframes slideUpFade {
+    0% {
+        bottom: -60px;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8);
+    }
+    100% {
+        bottom: 40px;
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
     }
 }

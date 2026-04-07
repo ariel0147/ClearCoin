@@ -1,0 +1,111 @@
+/* רקע כהה שמכסה את כל המסך מאחורי החלון */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(1, 4, 10, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+/* החלון עצמו */
+.modal-content {
+    background: rgba(8, 12, 25, 0.95);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px; /* בצד שמאל בגלל RTL */
+    background: transparent;
+    border: none;
+    color: #8892b0;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover { color: #ff3366; }
+
+.modal-content h2 {
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 1.5rem;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.transaction-form { display: flex; flex-direction: column; gap: 20px; }
+
+/* כפתורי בחירת הוצאה/הכנסה */
+.type-selector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8892b0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.type-btn.expense.active {
+    background: rgba(255, 51, 102, 0.15);
+    border-color: #ff3366;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+}
+
+.type-btn.income.active {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: #00ff88;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.submit-btn {
+    margin-top: 10px;
+    background: linear-gradient(90deg, #00f3ff, #0088ff);
+    color: #01040a;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: 'Heebo', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }

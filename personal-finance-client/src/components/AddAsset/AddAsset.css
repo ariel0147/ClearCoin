@@ -1,0 +1,30 @@
+/* העיצוב הכללי נשאב מהפרויקט, נוסיף רק את בחירת האייקונים */
+.icon-selector {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.icon-option {
+    font-size: 1.8rem;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.icon-option:hover {
+    background: rgba(0, 243, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.icon-option.selected {
+    background: rgba(0, 243, 255, 0.2);
+    border-color: #00f3ff;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    transform: scale(1.15);
+}

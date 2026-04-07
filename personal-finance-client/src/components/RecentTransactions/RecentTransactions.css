@@ -1,0 +1,126 @@
+.transactions-container {
+    background: rgba(8, 12, 25, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 243, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    margin-top: 10px;
+}
+
+.transactions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.transactions-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+}
+
+.view-all-btn {
+    background: transparent;
+    color: #00f3ff;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    padding: 6px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.view-all-btn:hover {
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.cyber-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.cyber-table th {
+    color: #8892b0;
+    font-weight: 600;
+    padding: 15px;
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cyber-table td {
+    padding: 18px 15px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    transition: background 0.3s;
+}
+
+.table-row:hover td {
+    background: rgba(0, 243, 255, 0.03);
+}
+
+.tx-date {
+    font-size: 0.9rem;
+    color: #64748b !important;
+}
+
+.tx-desc {
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+.tx-category {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.tx-amount {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.tx-amount.income {
+    color: #00ff88 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.tx-amount.expense {
+    color: #ff3366 !important;
+    text-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+}
+.delete-row-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    filter: grayscale(1) opacity(0.5); /* נראה דהוי עד שעוברים עליו */
+}
+
+.table-row:hover .delete-row-btn {
+    filter: grayscale(0) opacity(1);
+}
+
+.delete-row-btn:hover {
+    background: rgba(255, 51, 102, 0.15);
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+}
