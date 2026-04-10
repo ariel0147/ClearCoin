@@ -8,6 +8,7 @@ import RecentTransactions from '../RecentTransactions/RecentTransactions';
 import ExpenseChart from '../ExpenseChart/ExpenseChart';
 import AddTransaction from '../AddTransaction/AddTransaction';
 import Assets from '../Assets/Assets';
+import Paychecks from '../Paychecks/Paychecks';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -122,7 +123,12 @@ const Dashboard = () => {
 
                     {/* מסכי פלייסבולדר לבינתיים */}
                     {activeTab === 'transactions' && <h2 className="section-title">פירוט תנועות ועו"ש (בקרוב)</h2>}
-                    {activeTab === 'paychecks' && <h2 className="section-title">תלושי שכר (בקרוב)</h2>}
+                    {activeTab === 'paychecks' && (
+                        <Paychecks
+                            showNotification={showNotification}
+                            onTransactionAdded={() => fetchTransactions()}
+                        />
+                    )}
                     {activeTab === 'budgets' && <h2 className="section-title">יעדים ותקציב (בקרוב)</h2>}
 
                 </div>

@@ -3,6 +3,28 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// יצירת תיקיית העלאות אם היא לא קיימת
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+// הגדרות שמירת הקבצים של Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir); // שמירה בתיקיית uploads
+    },
+    filename: function (req, file, cb) {
+        // נותנים לקובץ שם ייחודי מבוסס על הזמן הנוכחי כדי שלא יידרסו קבצים
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'paycheck-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 require('dotenv').config();
 
 const app = express();
@@ -171,6 +193,35 @@ app.delete('/api/assets/:id', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('שגיאה במחיקת נכס:', err);
         res.status(500).json({ message: 'שגיאה במחיקת הנכס' });
+    }
+});
+// --- נתיב העלאה וסריקת תלוש שכר (A.I Scanner) ---
+app.post('/api/scan-paycheck', authenticateToken, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'לא נבחר קובץ סרוק' });
+        }
+
+        // כאן הקובץ כבר נשמר בהצלחה בתיקיית uploads!
+        console.log(`✅ קובץ התקבל ונשמר בשם: ${req.file.filename}`);
+
+        // הדמיית עיבוד OCR חכם שלוקח קצת זמן (2 שניות)
+        setTimeout(() => {
+            // מייצרים שכר רנדומלי כדי שזה ייראה דינמי ואמיתי בבדיקות שלנו
+            const randomSalary = (Math.random() * (15000 - 8000) + 8000).toFixed(2);
+            const randomTaxes = (randomSalary * 0.2).toFixed(2); // נניח 20% מיסים
+
+            res.json({
+                company: 'חברת טכנולוגיה (OCR Demo)',
+                date: new Date().toISOString().split('T')[0], // תאריך של היום
+                netSalary: randomSalary,
+                taxes: randomTaxes
+            });
+        }, 2000);
+
+    } catch (err) {
+        console.error('❌ שגיאה בסריקת תלוש:', err);
+        res.status(500).json({ message: 'שגיאה בעיבוד התלוש בשרת' });
     }
 });
 
