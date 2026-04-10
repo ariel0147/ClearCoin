@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import './AddAsset.css';
 
-const AddAsset = ({ onClose, onAssetAdded }) => {
+const AddAsset = ({ isOpen, onClose, onAssetAdded, showNotification }) => {
     const [formData, setFormData] = useState({
         name: '',
         value: '',
-        type: 'liquid', // ערך ברירת מחדל
-        icon: '💰'      // אימוג'י ברירת מחדל
+        type: 'liquid',
+        icon: '💰'
     });
     const [error, setError] = useState('');
+
+    if (!isOpen) return null;
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,56 +25,64 @@ const AddAsset = ({ onClose, onAssetAdded }) => {
         setError('');
         try {
             const token = localStorage.getItem('token');
+            const payload = {
+                ...formData,
+                value: parseFloat(formData.value)
+            };
+
             const response = await fetch('http://localhost:5000/api/assets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.message || 'Failed to add asset');
+                throw new Error(data.message || 'שגיאה בהוספת הנכס');
             }
 
-            // עדכון רשימת הנכסים בקומפוננטת האב
+            if (showNotification) {
+                showNotification('נכס / חיסכון נוסף בהצלחה!', 'success');
+            }
+
             if (onAssetAdded) {
                 onAssetAdded();
             }
-            onClose(); // סגירת המודאל
+
+            setFormData({ name: '', value: '', type: 'liquid', icon: '💰' });
+            onClose();
         } catch (err) {
             setError(err.message);
             console.error(err);
         }
     };
 
-    // רשימה קצרה של אימוג'ים לבחירה (אפשר להרחיב)
-    const availableIcons = ['💰', '🚗', '🏠', '📈', '🪙', '💻'];
+    const availableIcons = ['💰', '🚗', '🏠', '📈', '🪙', '💻', '⌚', '💎', '🚀'];
 
     return (
-        <div className="modal-overlay">
-            <div className="add-asset-modal">
-                <h2>Add New Asset / Saving</h2>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="add-asset-modal" onClick={e => e.stopPropagation()}>
+                <h2>הוספת נכס חדש</h2>
                 {error && <p className="error-message">{error}</p>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Asset Name</label>
+                        <label>שם הנכס או החיסכון</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            placeholder="e.g. Hyundai Veloster"
+                            placeholder="לדוגמה: חיסכון לחופשה, רכב..."
                         />
                     </div>
 
                     <div className="form-group">
-                        <label>Value</label>
-                        {/* הוספנו step="0.01" כדי לאפשר מספרים עשרוניים */}
+                        <label>שווי הנכס (₪)</label>
                         <input
                             type="number"
                             name="value"
@@ -86,16 +96,16 @@ const AddAsset = ({ onClose, onAssetAdded }) => {
                     </div>
 
                     <div className="form-group">
-                        <label>Type</label>
+                        <label>סוג הנכס</label>
                         <select name="type" value={formData.type} onChange={handleChange}>
-                            <option value="liquid">Liquid (Cash, Bank)</option>
-                            <option value="property">Property (Real Estate, Vehicle)</option>
-                            <option value="investment">Investment (Stocks, Crypto)</option>
+                            <option value="liquid">נזיל (מזומן, עו"ש, פק"מ)</option>
+                            <option value="property">רכוש (נדל"ן, רכב, חפצים)</option>
+                            <option value="investment">השקעות (מניות, קריפטו, פנסיה)</option>
                         </select>
                     </div>
 
                     <div className="form-group icon-selection">
-                        <label>Select Icon</label>
+                        <label>בחר אימוג'י לתצוגה</label>
                         <div className="icon-grid">
                             {availableIcons.map(icon => (
                                 <button
@@ -111,8 +121,8 @@ const AddAsset = ({ onClose, onAssetAdded }) => {
                     </div>
 
                     <div className="modal-actions">
-                        <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-                        <button type="submit" className="btn-submit">Save Asset</button>
+                        <button type="button" className="btn-cancel" onClick={onClose}>ביטול</button>
+                        <button type="submit" className="btn-submit">שמירת נכס</button>
                     </div>
                 </form>
             </div>

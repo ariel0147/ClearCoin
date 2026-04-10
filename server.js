@@ -1,58 +1,62 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
-const bcrypt = require('bcryptjs'); // משתמשים ב-bcryptjs שהתקנו מקודם
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 
-// הגדרות בסיסיות
 app.use(cors());
 app.use(express.json());
 
-// לוגר בקשות - כדי לראות את הבקשות בטרמינל
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} request to ${req.url}`);
     next();
 });
 
+// הגדרת החיבור - הוספנו charset בשביל תמיכה מושלמת באימוג'ים!
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'personal_finance_db'
+    database: process.env.DB_NAME || 'personal_finance_db',
+    charset: 'utf8mb4'
 });
 
-// הכנת מסד הנתונים (כולל תמיכה באימוג'ים בנכסים)
+// הכנת מסד הנתונים
 async function prepareDB() {
     try {
         await pool.query(`CREATE TABLE IF NOT EXISTS Users (
-            user_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100),
+                                                               user_id INT AUTO_INCREMENT PRIMARY KEY,
+                                                               name VARCHAR(100),
             email VARCHAR(100) UNIQUE,
             userName VARCHAR(100) UNIQUE,
             password_hash VARCHAR(255)
-        )`);
+            )`);
 
         await pool.query(`CREATE TABLE IF NOT EXISTS Transactions (
-            transaction_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            amount DECIMAL(10,2),
+                                                                      transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+                                                                      user_id INT NOT NULL,
+                                                                      amount DECIMAL(10,2),
             transaction_date DATE,
             description VARCHAR(255),
             type VARCHAR(50)
-        )`);
+            )`);
 
-        // טבלת נכסים עם תמיכה באימוג'ים (utf8mb4)
+        // --- שורה זמנית לתיקון השגיאה! ---
+        // היא תמחק את הטבלה הישנה כדי שנוכל ליצור אותה מחדש כמו שצריך
+        await pool.query(`DROP TABLE IF EXISTS Assets`);
+
+        // טבלת נכסים עם תמיכה באימוג'ים (utf8mb4) ועם עמודת name
         await pool.query(`CREATE TABLE IF NOT EXISTS Assets (
-            asset_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            name VARCHAR(100),
+                                                                asset_id INT AUTO_INCREMENT PRIMARY KEY,
+                                                                user_id INT NOT NULL,
+                                                                name VARCHAR(100),
             value DECIMAL(10,2),
             type VARCHAR(50),
             icon VARCHAR(255)
-        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 
         console.log('✅ מסד הנתונים מוכן לעבודה!');
     } catch (err) {
@@ -61,7 +65,6 @@ async function prepareDB() {
 }
 prepareDB();
 
-// מידלוואר אבטחה
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -74,7 +77,6 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- נתיבי אימות מותאמים במדויק ל-React שלך ---
 app.post('/auth/reg', async (req, res) => {
     try {
         const { name, email, userName, pass } = req.body;
@@ -105,7 +107,6 @@ app.post('/auth/login', async (req, res) => {
     }
 });
 
-// --- נתיבי תנועות ---
 app.get('/api/transactions', authenticateToken, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM Transactions WHERE user_id = ? ORDER BY transaction_date DESC', [req.user.id]);
@@ -128,7 +129,6 @@ app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
     } catch (err) { res.status(500).json({ message: 'שגיאה במחיקה' }); }
 });
 
-// --- נתיבי נכסים ---
 app.get('/api/assets', authenticateToken, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM Assets WHERE user_id = ?', [req.user.id]);
