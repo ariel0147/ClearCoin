@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
+const Tesseract = require('tesseract.js');
 // יצירת תיקיית העלאות אם היא לא קיימת
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -195,34 +195,108 @@ app.delete('/api/assets/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'שגיאה במחיקת הנכס' });
     }
 });
-// --- נתיב העלאה וסריקת תלוש שכר (A.I Scanner) ---
+
+// --- נתיב העלאה וסריקת תלוש שכר אמיתית עם Tesseract A.I (גרסה 3 - חכמה) ---
 app.post('/api/scan-paycheck', authenticateToken, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'לא נבחר קובץ סרוק' });
         }
 
-        // כאן הקובץ כבר נשמר בהצלחה בתיקיית uploads!
-        console.log(`✅ קובץ התקבל ונשמר בשם: ${req.file.filename}`);
+        if (req.file.mimetype === 'application/pdf') {
+            const fs = require('fs');
+            fs.unlinkSync(req.file.path);
+            return res.status(400).json({ message: 'מערכת ה-AI תומכת כרגע בתמונות בלבד (JPG/PNG).' });
+        }
 
-        // הדמיית עיבוד OCR חכם שלוקח קצת זמן (2 שניות)
-        setTimeout(() => {
-            // מייצרים שכר רנדומלי כדי שזה ייראה דינמי ואמיתי בבדיקות שלנו
-            const randomSalary = (Math.random() * (15000 - 8000) + 8000).toFixed(2);
-            const randomTaxes = (randomSalary * 0.2).toFixed(2); // נניח 20% מיסים
+        console.log(`✅ מתחיל סריקת A.I לקובץ: ${req.file.filename}`);
 
-            res.json({
-                company: 'חברת טכנולוגיה (OCR Demo)',
-                date: new Date().toISOString().split('T')[0], // תאריך של היום
-                netSalary: randomSalary,
-                taxes: randomTaxes
-            });
-        }, 2000);
+        const { data: { text } } = await Tesseract.recognize(
+            req.file.path,
+            'heb+eng'
+        );
+
+        console.log("📄 סריקה הושלמה. מפעיל אלגוריתם חילוץ V3...");
+
+        // 1. תאריך
+        let dateStr = new Date().toISOString().split('T')[0];
+        const dateMatch = text.match(/\b(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})\b/);
+        if (dateMatch) {
+            let day = dateMatch[1].padStart(2, '0');
+            let month = dateMatch[2].padStart(2, '0');
+            let year = dateMatch[3];
+            if (year.length === 2) year = '20' + year;
+            dateStr = `${year}-${month}-${day}`;
+        }
+
+        // 2. חילוץ שכר לתשלום (נטו / לאחר הורדות)
+        let guessedNetSalary = '0.00';
+
+        // מוצא את כל המספרים העשרוניים במסמך (למשל 8500.50 או 12,000.00)
+        const decimalRegex = /\b\d{1,3}(?:,\d{3})*\.\d{2}\b/g;
+        const fallbackRegex = /\b\d{4,5}\.\d{2}\b/g;
+
+        const decimalNumbers = text.match(decimalRegex) || text.match(fallbackRegex) || [];
+
+        if (decimalNumbers.length > 0) {
+            // מנקים פסיקים והופכים למספרים אמיתיים (מעל 1500 ש"ח)
+            const validSalaries = decimalNumbers
+                .map(n => parseFloat(n.replace(/,/g, '')))
+                .filter(n => n > 1500 && n < 80000);
+
+            if (validSalaries.length > 0) {
+                // טריק 1: חיפוש מספר שנמצא בסמוך למילים מובהקות של שכר נטו (כולל שגיאות כתיב של ה-OCR)
+                const netMatch = text.match(/(?:לתשלום|נטו|העברה|תטלומים|הורדות)[\s\S]{0,35}?(\d{1,3}(?:,\d{3})*\.\d{2}|\d{4,5}\.\d{2})/);
+
+                if (netMatch) {
+                    guessedNetSalary = parseFloat(netMatch[1].replace(/,/g, '')).toFixed(2);
+                    console.log("🎯 הנטו אותר באמצעות מילת מפתח:", guessedNetSalary);
+                } else {
+                    // טריק 2: הנטו לרוב מופיע בחלק הכי תחתון של התלוש.
+                    // לכן ניקח את המספר החוקי *האחרון* שהמערכת קראה!
+                    guessedNetSalary = validSalaries[validSalaries.length - 1].toFixed(2);
+                    console.log("🎯 הנטו אותר לפי מיקום בתחתית התלוש:", guessedNetSalary);
+                }
+            }
+        }
+
+        const guessedTaxes = (parseFloat(guessedNetSalary) * 0.2).toFixed(2); // נשאיר כרגע הערכה גסה למס
+
+        // 3. חילוץ שם המעסיק (מקום העבודה)
+        let companyName = '';
+
+        // מנסה למצוא שם שמסתיים בבע"מ/ע"מ (לוקח עד 4 מילים לפני הבע"מ)
+        const companyMatch = text.match(/([א-ת]+(?:\s+[א-ת]+){0,3}\s+(?:בע"מ|בע״מ|ע"מ|בעמ|inc|ltd))/i);
+        if (companyMatch) {
+            companyName = companyMatch[1].trim();
+        } else {
+            // אם אין בע"מ, המערכת תסרוק את השורות הראשונות של התלוש (שם לרוב מופיע הלוגו/שם העסק)
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
+            for (let line of lines) {
+                // אם השורה כולה בעברית ואינה מכילה מילות "תלוש שכר" גנריות
+                if (/^[א-ת\s]+$/.test(line) && !line.includes('תלוש') && !line.includes('שכר') && !line.includes('חודש')) {
+                    companyName = line;
+                    break;
+                }
+            }
+        }
+
+        // אם כלום לא עבד, נשים טקסט ברירת מחדל
+        if (!companyName || companyName.length < 2) {
+            companyName = 'לא מזהה מעסיק (נא להזין)';
+        }
+
+        // מחזירים את התשובה ללקוח
+        res.json({
+            company: companyName,
+            date: dateStr,
+            netSalary: guessedNetSalary,
+            taxes: guessedTaxes
+        });
 
     } catch (err) {
         console.error('❌ שגיאה בסריקת תלוש:', err);
         res.status(500).json({ message: 'שגיאה בעיבוד התלוש בשרת' });
     }
 });
-
 app.listen(5000, () => console.log('🚀 השרת באוויר על פורט 5000'));

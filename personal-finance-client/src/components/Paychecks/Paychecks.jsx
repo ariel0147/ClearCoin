@@ -30,6 +30,12 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
     };
 
     const processFile = async (selectedFile) => {
+        // --- חסימת PDF בצד לקוח ---
+        if (selectedFile.type === 'application/pdf') {
+            if (showNotification) showNotification('נא להעלות תמונה (JPG/PNG) ולא קובץ PDF', 'error');
+            return;
+        }
+
         setFile(selectedFile);
         setIsScanning(true);
         setScanResult(null);
@@ -45,21 +51,24 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
                 body: formData
             });
 
-            if (!response.ok) throw new Error('שגיאה מול השרת בסריקה');
-
             const data = await response.json();
+
+            // אם השרת החזיר לנו שגיאה (כמו קובץ לא נתמך)
+            if (!response.ok) {
+                throw new Error(data.message || 'שגיאה מול השרת בסריקה');
+            }
+
             setScanResult(data);
 
             if (showNotification) showNotification('התלוש נסרק בהצלחה! נא לאשר נתונים.', 'success');
         } catch (err) {
             console.error(err);
-            if (showNotification) showNotification('שגיאה בסריקת הקובץ, נסה שוב', 'error');
+            if (showNotification) showNotification(err.message, 'error');
         } finally {
             setIsScanning(false);
         }
     };
 
-    // --- הוספנו פונקציה לעדכון הנתונים בטופס ---
     const handleInputChange = (e) => {
         setScanResult({
             ...scanResult,
@@ -67,7 +76,6 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
         });
     };
 
-    // --- שילוב הנתונים לתוך העו"ש ב-Database ---
     const handleSaveToTransactions = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -75,7 +83,7 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
                 amount: parseFloat(scanResult.netSalary),
                 date: scanResult.date,
                 description: `משכורת - ${scanResult.company}`,
-                type: 'income' // מגדיר את זה כהכנסה
+                type: 'income'
             };
 
             const response = await fetch('http://localhost:5000/api/transactions', {
@@ -91,10 +99,8 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
 
             if (showNotification) showNotification('המשכורת נוספה לתנועות העו"ש!', 'success');
 
-            // מעדכן את דף הבית
             if (onTransactionAdded) onTransactionAdded();
 
-            // איפוס מסך
             setFile(null);
             setScanResult(null);
         } catch (err) {
@@ -107,7 +113,7 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
         <div className="paychecks-container">
             <div className="paychecks-header">
                 <h2 className="section-title">סריקת תלושי שכר <span className="neon-text">A.I</span></h2>
-                <p>העלה תמונה או PDF של תלוש השכר שלך והמערכת תחלץ את הנתונים אוטומטית.</p>
+                <p>העלה תמונה (JPG/PNG) של תלוש השכר שלך והמערכת תחלץ את הנתונים אוטומטית.</p>
             </div>
 
             {!isScanning && !scanResult && (
@@ -118,10 +124,11 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current.click()}
                 >
-                    <input type="file" ref={fileInputRef} onChange={handleFileInput} accept="image/*,.pdf" hidden />
-                    <div className="drop-icon">📄</div>
-                    <h3>גרור ושחרר את התלוש כאן</h3>
-                    <p>או לחץ כדי לבחור קובץ מהמחשב</p>
+                    {/* חסמנו בחירת PDF, עכשיו מקבל רק תמונות */}
+                    <input type="file" ref={fileInputRef} onChange={handleFileInput} accept="image/*" hidden />
+                    <div className="drop-icon">🖼️</div>
+                    <h3>גרור ושחרר צילום של התלוש כאן</h3>
+                    <p>או לחץ כדי לבחור קובץ מהמחשב (תמונות בלבד)</p>
                 </div>
             )}
 
@@ -140,7 +147,6 @@ const Paychecks = ({ showNotification, onTransactionAdded }) => {
                     <div className="result-grid">
                         <div className="result-item">
                             <label>מקום עבודה</label>
-                            {/* שינינו את זה להיות שדה עריך */}
                             <input type="text" name="company" value={scanResult.company} onChange={handleInputChange} />
                         </div>
                         <div className="result-item">
