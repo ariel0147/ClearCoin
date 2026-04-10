@@ -15,7 +15,10 @@ const Topbar = ({ userName }) => {
             <div className="welcome-message">
                 שלום, <span>{userName}</span>
             </div>
-            <button className="logout-btn" onClick={handleLogout}>התנתק</button>
+            {/* כפתור סייבר עגול קומפקטי */}
+            <button className="topbar-logout-btn" onClick={handleLogout} title="התנתק">
+                <span className="power-icon">⏻</span>
+            </button>
         </div>
     );
 };

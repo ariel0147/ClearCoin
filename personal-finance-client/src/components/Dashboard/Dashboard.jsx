@@ -7,7 +7,7 @@ import Overview from '../Overview/Overview';
 import RecentTransactions from '../RecentTransactions/RecentTransactions';
 import ExpenseChart from '../ExpenseChart/ExpenseChart';
 import AddTransaction from '../AddTransaction/AddTransaction';
-import Assets from '../Assets/Assets'; // <--- הייבוא של המסך החדש!
+import Assets from '../Assets/Assets';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -62,6 +62,13 @@ const Dashboard = () => {
         setTransactionToDelete(null);
     };
 
+    // פונקציית התנתקות חדשה
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('name');
+        navigate('/'); // חזרה למסך ההתחברות/הרשמה
+    };
+
     useEffect(() => {
         const storedName = localStorage.getItem('name');
         if (!storedName) navigate('/');
@@ -73,8 +80,12 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-layout" dir="rtl">
-            {/* מעבירים לתפריט הצד את הסטייט כדי שידע מה צבוע ובמה בחרנו */}
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            {/* מעבירים לתפריט הצד את הסטייט וגם את פונקציית ההתנתקות! */}
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                onLogout={handleLogout}
+            />
 
             <div className="main-area">
                 <Topbar userName={userName} />
@@ -112,6 +123,7 @@ const Dashboard = () => {
                     {/* מסכי פלייסבולדר לבינתיים */}
                     {activeTab === 'transactions' && <h2 className="section-title">פירוט תנועות ועו"ש (בקרוב)</h2>}
                     {activeTab === 'paychecks' && <h2 className="section-title">תלושי שכר (בקרוב)</h2>}
+                    {activeTab === 'budgets' && <h2 className="section-title">יעדים ותקציב (בקרוב)</h2>}
 
                 </div>
             </div>

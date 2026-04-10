@@ -115,10 +115,11 @@
 }
 
 .main-area {
-    flex: 1; /* תופס את שאר המקום שנשאר אחרי התפריט */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* מאפשר גלילה רק באזור התוכן */
+    overflow-y: auto;
+    margin-right: 260px; /* <--- התוספת הקטנה הזו תדחוף את התוכן שמאלה ותפנה מקום לסרגל! */
 }
 
 .content-area {
@@ -429,4 +430,15 @@
 
 .add-new-asset:hover .add-icon, .add-new-asset:hover h3 {
     color: #00f3ff;
+}
+/* התאמת אזור התוכן למובייל */
+@media (max-width: 768px) {
+    .main-area {
+        margin-right: 0; /* מבטל את המרווח מימין כי אין יותר סרגל צד */
+        margin-bottom: 75px; /* מפנה מקום לתפריט הניווט התחתון שיצרנו */
+    }
+
+    .content-area {
+        padding: 20px 15px; /* קצת פחות שוליים בנייד כדי לחסוך מקום */
+    }
 }

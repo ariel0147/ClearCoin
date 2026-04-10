@@ -22,19 +22,38 @@
     font-weight: 700;
 }
 
-.logout-btn {
+/* העיצוב החדש: כפתור התנתקות קומפקטי ועגול */
+.topbar-logout-btn {
     background: transparent;
-    border: 1px solid #ff3366;
+    border: 1px solid rgba(255, 51, 102, 0.4);
     color: #ff3366;
-    padding: 8px 20px;
-    border-radius: 8px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 1.2rem;
+    padding: 0; /* חשוב כדי שהאימוג'י יהיה בול באמצע */
 }
 
-.logout-btn:hover {
+.topbar-logout-btn:hover {
     background: rgba(255, 51, 102, 0.1);
-    box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+    transform: scale(1.1);
     color: #ffffff;
+    border-color: #ff3366;
+}
+
+/* התאמות קטנות למובייל עבור הסרגל העליון */
+@media (max-width: 768px) {
+    .topbar {
+        padding: 15px 20px;
+    }
+
+    .welcome-message {
+        font-size: 1rem; /* מקטין מעט את הכתב בנייד */
+    }
 }

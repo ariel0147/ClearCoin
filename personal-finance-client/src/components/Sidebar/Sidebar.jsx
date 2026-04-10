@@ -1,35 +1,45 @@
 import React from 'react';
 import './Sidebar.css';
 
-// התפריט מקבל עכשיו את הלשונית הפעילה, ופונקציה שמשנה אותה
-const Sidebar = ({ activeTab, setActiveTab }) => {
-
-    // רשימת הכפתורים בתפריט
+const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
+    // רשימת הלשוניות שלנו
     const menuItems = [
-        { id: 'overview', label: 'סקירה כללית' },
-        { id: 'transactions', label: 'תנועות ועו"ש' },
-        { id: 'assets', label: 'נכסים וחסכונות' },
-        { id: 'paychecks', label: 'תלושי שכר' }
+        { id: 'overview', label: 'סקירה כללית', icon: '📊' },
+        { id: 'transactions', label: 'תנועות העו"ש', icon: '💸' },
+        { id: 'assets', label: 'נכסים וחסכונות', icon: '💎' },
+        { id: 'paychecks', label: 'תלושי שכר', icon: '📄' },
+        { id: 'budgets', label: 'יעדים ותקציב', icon: '🎯' }
     ];
 
     return (
-        <div className="sidebar">
-            <div className="logo-area">
-                <h2>CLEAR<span>COIN</span></h2>
+        <aside className="sidebar">
+            <div className="sidebar-logo">
+                <h2>Clear<span className="neon-text">Coin</span></h2>
+                <div className="logo-line"></div>
             </div>
-            <nav className="nav-menu">
+
+            <nav className="sidebar-nav">
                 {menuItems.map(item => (
-                    <div
+                    <button
                         key={item.id}
-                        // אם הלשונית פעילה, מוסיף מחלקת active שצובעת את הכפתור בטורקיז
                         className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
                         onClick={() => setActiveTab(item.id)}
                     >
-                        {item.label}
-                    </div>
+                        <span className="nav-icon">{item.icon}</span>
+                        <span className="nav-label">{item.label}</span>
+                        {/* אפקט זוהר בלשונית הפעילה */}
+                        {activeTab === item.id && <div className="active-glow"></div>}
+                    </button>
                 ))}
             </nav>
-        </div>
+
+            <div className="sidebar-footer">
+                <button className="logout-btn" onClick={onLogout}>
+                    <span className="nav-icon">🚪</span>
+                    <span className="nav-label">התנתק</span>
+                </button>
+            </div>
+        </aside>
     );
 };
 
