@@ -119,3 +119,28 @@
 .add-new-asset:hover .add-icon, .add-new-asset:hover h3 {
     color: #00f3ff;
 }
+.delete-asset-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #8892b0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+    padding: 5px;
+}
+
+.delete-asset-btn:hover {
+    color: #ff3366;
+    opacity: 1;
+    transform: scale(1.1) rotate(5deg);
+    text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+}
+
+/* התאמת הכרטיס שיוכל להכיל כפתור בפינה */
+.asset-card {
+    position: relative;
+}

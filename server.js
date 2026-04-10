@@ -44,11 +44,10 @@ async function prepareDB() {
             type VARCHAR(50)
             )`);
 
-        // --- שורה זמנית לתיקון השגיאה! ---
-        // היא תמחק את הטבלה הישנה כדי שנוכל ליצור אותה מחדש כמו שצריך
-        await pool.query(`DROP TABLE IF EXISTS Assets`);
+        // === השורה שהייתה פה (DROP TABLE) נמחקה! ===
+        // מעכשיו הנתונים יישמרו לתמיד.
 
-        // טבלת נכסים עם תמיכה באימוג'ים (utf8mb4) ועם עמודת name
+        // טבלת נכסים
         await pool.query(`CREATE TABLE IF NOT EXISTS Assets (
                                                                 asset_id INT AUTO_INCREMENT PRIMARY KEY,
                                                                 user_id INT NOT NULL,
@@ -144,6 +143,34 @@ app.post('/api/assets', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('שגיאה בהוספת נכס:', err);
         res.status(500).json({ message: 'שגיאה בשמירת נכס' });
+    }
+});
+// --- עדכון שווי של נכס קיים ---
+app.put('/api/assets/:id', authenticateToken, async (req, res) => {
+    try {
+        const { value } = req.body;
+        await pool.query(
+            'UPDATE Assets SET value = ? WHERE asset_id = ? AND user_id = ?',
+            [value, req.params.id, req.user.id]
+        );
+        res.json({ message: 'שווי הנכס עודכן בהצלחה' });
+    } catch (err) {
+        console.error('שגיאה בעדכון נכס:', err);
+        res.status(500).json({ message: 'שגיאה בעדכון הנכס' });
+    }
+});
+
+// --- מחיקת נכס ---
+app.delete('/api/assets/:id', authenticateToken, async (req, res) => {
+    try {
+        await pool.query(
+            'DELETE FROM Assets WHERE asset_id = ? AND user_id = ?',
+            [req.params.id, req.user.id]
+        );
+        res.json({ message: 'הנכס נמחק בהצלחה' });
+    } catch (err) {
+        console.error('שגיאה במחיקת נכס:', err);
+        res.status(500).json({ message: 'שגיאה במחיקת הנכס' });
     }
 });
 

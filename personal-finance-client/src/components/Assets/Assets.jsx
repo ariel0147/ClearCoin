@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import AddAsset from '../AddAsset/AddAsset'; // <-- ייבוא המודל
+import AddAsset from '../AddAsset/AddAsset';
+import EditAsset from './EditAsset'; // ייבוא מודל העריכה החדש
 import './Assets.css';
 
-// הוספנו את ה-showNotification כדי שנוכל להקפיץ הודעות הצלחה
 const Assets = ({ showNotification }) => {
     const [assetsData, setAssetsData] = useState([]);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false); // סטייט לפתיחת החלון
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    // סטייטים חדשים לעריכה
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedAsset, setSelectedAsset] = useState(null);
 
     const fetchAssets = async () => {
         try {
@@ -26,6 +30,32 @@ const Assets = ({ showNotification }) => {
         fetchAssets();
     }, []);
 
+    // פונקציית מחיקה
+    const handleDelete = async (assetId, assetName) => {
+        if (!window.confirm(`האם אתה בטוח שברצונך למחוק את הנכס "${assetName}"?`)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/assets/${assetId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                if (showNotification) showNotification('הנכס נמחק בהצלחה', 'success');
+                fetchAssets(); // רענון הרשימה
+            }
+        } catch (err) {
+            console.error('שגיאה במחיקת נכס:', err);
+        }
+    };
+
+    // פתיחת מודל העריכה
+    const openEditModal = (asset) => {
+        setSelectedAsset(asset);
+        setIsEditModalOpen(true);
+    };
+
     const totalAssets = assetsData.reduce((sum, item) => sum + parseFloat(item.value), 0);
 
     return (
@@ -41,27 +71,46 @@ const Assets = ({ showNotification }) => {
             <div className="assets-grid">
                 {assetsData.map(asset => (
                     <div key={asset.asset_id} className="asset-card">
+                        {/* כפתור מחיקה בפינת הכרטיס */}
+                        <button
+                            className="delete-asset-btn"
+                            onClick={() => handleDelete(asset.asset_id, asset.name)}
+                            title="מחק נכס"
+                        >
+                            <i className="fa-solid fa-trash"></i> 🗑️
+                        </button>
+
                         <div className="asset-icon">{asset.icon}</div>
                         <div className="asset-details">
                             <h3>{asset.name}</h3>
                             <p className="asset-value">₪{parseFloat(asset.value).toLocaleString('he-IL')}</p>
                         </div>
-                        <button className="edit-asset-btn">עדכן שווי</button>
+                        {/* כפתור עדכון שפותח את המודל */}
+                        <button className="edit-asset-btn" onClick={() => openEditModal(asset)}>
+                            עדכן שווי
+                        </button>
                     </div>
                 ))}
 
-                {/* כרטיס הוספת נכס חדש - עכשיו הוא פותח את המודל! */}
                 <div className="asset-card add-new-asset" onClick={() => setIsAddModalOpen(true)}>
                     <div className="add-icon">+</div>
                     <h3>הוסף נכס חדש</h3>
                 </div>
             </div>
 
-            {/* החלון הקופץ שייצרנו עכשיו */}
             <AddAsset
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onAssetAdded={fetchAssets}
+                showNotification={showNotification}
+            />
+
+            {/* שילוב מודל העריכה שיצרנו */}
+            <EditAsset
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                asset={selectedAsset}
+                onAssetUpdated={fetchAssets}
                 showNotification={showNotification}
             />
         </div>
