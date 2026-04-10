@@ -308,3 +308,125 @@
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+.assets-container {
+    animation: fadeIn 0.4s ease;
+}
+
+.assets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.total-assets-badge {
+    background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(0, 136, 255, 0.1));
+    border: 1px solid #00f3ff;
+    padding: 12px 25px;
+    border-radius: 12px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+}
+
+.total-assets-badge span {
+    color: #8892b0;
+    font-size: 1rem;
+}
+
+.total-assets-badge strong {
+    color: #00f3ff;
+    font-size: 1.4rem;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+}
+
+.assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.asset-card {
+    background: rgba(8, 12, 25, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.asset-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 243, 255, 0.3);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+.asset-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    width: 80px; height: 80px;
+    display: flex; justify-content: center; align-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.asset-details h3 {
+    margin: 0 0 10px 0;
+    color: #cbd5e1;
+    font-size: 1.2rem;
+}
+
+.asset-value {
+    margin: 0 0 20px 0;
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.edit-asset-btn {
+    background: transparent;
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    color: #00f3ff;
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+.edit-asset-btn:hover {
+    background: rgba(0, 243, 255, 0.1);
+}
+
+.add-new-asset {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    justify-content: center;
+    cursor: pointer;
+    background: transparent;
+}
+
+.add-new-asset:hover {
+    border-color: #00f3ff;
+    background: rgba(0, 243, 255, 0.05);
+}
+
+.add-new-asset .add-icon {
+    font-size: 3rem;
+    color: #8892b0;
+    margin-bottom: 10px;
+    transition: color 0.3s;
+}
+
+.add-new-asset:hover .add-icon, .add-new-asset:hover h3 {
+    color: #00f3ff;
+}

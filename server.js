@@ -1,17 +1,17 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // משתמשים ב-bcryptjs שהתקנו מקודם
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 
-// הגדרות בסיסיות - חייב להופיע בסדר הזה!
+// הגדרות בסיסיות
 app.use(cors());
 app.use(express.json());
 
-// לוגר בקשות - כדי שתראה בטרמינל שזה עובד
+// לוגר בקשות - כדי לראות את הבקשות בטרמינל
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} request to ${req.url}`);
     next();
@@ -20,14 +20,13 @@ app.use((req, res, next) => {
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD,
+    password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'personal_finance_db'
 });
 
-// הכנת מסד הנתונים
+// הכנת מסד הנתונים (כולל תמיכה באימוג'ים בנכסים)
 async function prepareDB() {
     try {
-        // טבלת משתמשים
         await pool.query(`CREATE TABLE IF NOT EXISTS Users (
             user_id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100),
@@ -36,7 +35,6 @@ async function prepareDB() {
             password_hash VARCHAR(255)
         )`);
 
-        // טבלת תנועות
         await pool.query(`CREATE TABLE IF NOT EXISTS Transactions (
             transaction_id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -46,15 +44,15 @@ async function prepareDB() {
             type VARCHAR(50)
         )`);
 
-        // טבלת נכסים
+        // טבלת נכסים עם תמיכה באימוג'ים (utf8mb4)
         await pool.query(`CREATE TABLE IF NOT EXISTS Assets (
             asset_id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
             name VARCHAR(100),
             value DECIMAL(10,2),
             type VARCHAR(50),
-            icon VARCHAR(10)
-        )`);
+            icon VARCHAR(255)
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 
         console.log('✅ מסד הנתונים מוכן לעבודה!');
     } catch (err) {
@@ -76,26 +74,35 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- נתיבי אימות ---
+// --- נתיבי אימות מותאמים במדויק ל-React שלך ---
 app.post('/auth/reg', async (req, res) => {
     try {
         const { name, email, userName, pass } = req.body;
         const hashPass = await bcrypt.hash(pass, 10);
         await pool.query('INSERT INTO Users (name, email, userName, password_hash) VALUES (?, ?, ?, ?)', [name, email, userName, hashPass]);
         res.status(201).json({ message: 'נרשמת בהצלחה' });
-    } catch (err) { res.status(500).json({ message: 'שגיאה בהרשמה' }); }
+    } catch (err) {
+        console.error("שגיאה בהרשמה:", err);
+        res.status(500).json({ message: 'שגיאה בהרשמה' });
+    }
 });
 
 app.post('/auth/login', async (req, res) => {
     try {
         const { userName, pass } = req.body;
         const [users] = await pool.query('SELECT * FROM Users WHERE userName = ?', [userName]);
+
         if (users.length === 0) return res.status(400).json({ message: 'משתמש לא קיים' });
+
         const isMatch = await bcrypt.compare(pass, users[0].password_hash);
         if (!isMatch) return res.status(400).json({ message: 'סיסמה שגויה' });
+
         const token = jwt.sign({ id: users[0].user_id, name: users[0].name }, process.env.SECRET_KEY || 'ClearCoinSecretKey123', { expiresIn: '3h' });
         res.json({ name: users[0].name, token });
-    } catch (err) { res.status(500).json({ message: 'שגיאה בכניסה' }); }
+    } catch (err) {
+        console.error("שגיאה בהתחברות:", err);
+        res.status(500).json({ message: 'שגיאה בכניסה' });
+    }
 });
 
 // --- נתיבי תנועות ---
@@ -103,22 +110,22 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM Transactions WHERE user_id = ? ORDER BY transaction_date DESC', [req.user.id]);
         res.json(rows);
-    } catch (err) { res.status(500).json({ message: 'שגיאה' }); }
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשליפת תנועות' }); }
 });
 
 app.post('/api/transactions', authenticateToken, async (req, res) => {
     try {
         const { amount, date, description, type } = req.body;
         await pool.query('INSERT INTO Transactions (user_id, amount, transaction_date, description, type) VALUES (?, ?, ?, ?, ?)', [req.user.id, amount, date, description, type]);
-        res.status(201).json({ message: 'נשמר' });
-    } catch (err) { res.status(500).json({ message: 'שגיאה' }); }
+        res.status(201).json({ message: 'נשמר בהצלחה' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשמירת תנועה' }); }
 });
 
 app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
     try {
         await pool.query('DELETE FROM Transactions WHERE transaction_id = ? AND user_id = ?', [req.params.id, req.user.id]);
         res.json({ message: 'נמחק' });
-    } catch (err) { res.status(500).json({ message: 'שגיאה' }); }
+    } catch (err) { res.status(500).json({ message: 'שגיאה במחיקה' }); }
 });
 
 // --- נתיבי נכסים ---
@@ -126,15 +133,18 @@ app.get('/api/assets', authenticateToken, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM Assets WHERE user_id = ?', [req.user.id]);
         res.json(rows);
-    } catch (err) { res.status(500).json({ message: 'שגיאה' }); }
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשליפת נכסים' }); }
 });
 
 app.post('/api/assets', authenticateToken, async (req, res) => {
     try {
         const { name, value, type, icon } = req.body;
         await pool.query('INSERT INTO Assets (user_id, name, value, type, icon) VALUES (?, ?, ?, ?, ?)', [req.user.id, name, value, type, icon]);
-        res.status(201).json({ message: 'נשמר' });
-    } catch (err) { res.status(500).json({ message: 'שגיאה' }); }
+        res.status(201).json({ message: 'נכס נשמר בהצלחה' });
+    } catch (err) {
+        console.error('שגיאה בהוספת נכס:', err);
+        res.status(500).json({ message: 'שגיאה בשמירת נכס' });
+    }
 });
 
 app.listen(5000, () => console.log('🚀 השרת באוויר על פורט 5000'));
