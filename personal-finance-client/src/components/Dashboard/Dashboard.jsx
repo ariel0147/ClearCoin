@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
 import Overview from '../Overview/Overview';
@@ -12,6 +11,8 @@ import Paychecks from '../Paychecks/Paychecks';
 import './Dashboard.css';
 import Budgets from '../Budgets/Budgets';
 import Transactions from '../Transactions/Transactions';
+import Profile from '../Profile/Profile';
+
 const Dashboard = () => {
     const [userName, setUserName] = useState('');
     const [transactions, setTransactions] = useState([]);
@@ -136,6 +137,13 @@ const Dashboard = () => {
                         />
                     )}
                     {activeTab === 'budgets' && <Budgets showNotification={showNotification} />}
+
+                    {activeTab === 'profile' && (
+                        <Profile
+                            showNotification={showNotification}
+                            setUserNameGlobal={setUserName}
+                        />
+                    )}
 
                 </div>
             </div>

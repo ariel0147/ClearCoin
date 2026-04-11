@@ -412,4 +412,52 @@ app.delete('/api/budgets/:id', authenticateToken, async (req, res) => {
         res.json({ message: 'התקציב בוטל' });
     } catch (err) { res.status(500).json({ message: 'שגיאה במחיקת תקציב' }); }
 });
+// ==========================================
+//          API לפרופיל משתמש והגדרות
+// ==========================================
+
+// שליפת נתוני המשתמש (שם, אימייל ושם משתמש)
+app.get('/api/user/profile', authenticateToken, async (req, res) => {
+    try {
+        const [users] = await pool.query('SELECT name, email, userName FROM Users WHERE user_id = ?', [req.user.id]);
+        if (users.length === 0) return res.status(404).json({ message: 'משתמש לא נמצא' });
+        res.json(users[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'שגיאה בשליפת נתוני משתמש' });
+    }
+});
+
+// עדכון פרטי משתמש (שם ואימייל)
+app.put('/api/user/profile', authenticateToken, async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        await pool.query('UPDATE Users SET name = ?, email = ? WHERE user_id = ?', [name, email, req.user.id]);
+        res.json({ message: 'הפרטים עודכנו בהצלחה!' });
+    } catch (err) {
+        res.status(500).json({ message: 'שגיאה בעדכון פרטים' });
+    }
+});
+
+// עדכון סיסמה בצורה מאובטחת
+app.put('/api/user/password', authenticateToken, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        // 1. שליפת הסיסמה המקורית מהמסד
+        const [users] = await pool.query('SELECT password_hash FROM Users WHERE user_id = ?', [req.user.id]);
+
+        // 2. בדיקה שהסיסמה הנוכחית שהוזנה באמת תואמת למה שיש בשרת
+        const isMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
+        if (!isMatch) return res.status(400).json({ message: 'הסיסמה הנוכחית שגויה' });
+
+        // 3. אם הכל תקין - מצפינים את הסיסמה החדשה ושומרים
+        const hashPass = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE Users SET password_hash = ? WHERE user_id = ?', [hashPass, req.user.id]);
+
+        res.json({ message: 'הסיסמה שונתה בהצלחה!' });
+    } catch (err) {
+        console.error('שגיאה בעדכון סיסמה:', err);
+        res.status(500).json({ message: 'שגיאה בעדכון סיסמה' });
+    }
+});
 app.listen(5000, () => console.log('🚀 השרת באוויר על פורט 5000'));

@@ -8,7 +8,8 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         { id: 'transactions', label: 'תנועות העו"ש', icon: '💸' },
         { id: 'assets', label: 'נכסים וחסכונות', icon: '💎' },
         { id: 'paychecks', label: 'תלושי שכר', icon: '📄' },
-        { id: 'budgets', label: 'יעדים ותקציב', icon: '🎯' }
+        { id: 'budgets', label: 'יעדים ותקציב', icon: '🎯' },
+        { id: 'profile', label: 'הגדרות פרופיל', icon: '⚙️' }
     ];
 
     return (
