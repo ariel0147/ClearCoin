@@ -1,0 +1,244 @@
+.budgets-container {
+    animation: fadeIn 0.5s ease;
+}
+
+.budgets-header {
+    margin-bottom: 30px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section-panel {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+.btn-add {
+    background: transparent;
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-add:hover {
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.add-form input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    color: #fff;
+}
+
+.add-form input:focus {
+    outline: none;
+    border-color: #00f0ff;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.empty-state {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin: 20px 0;
+}
+
+/* Progress Bars */
+.progress-card {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 15px;
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.progress-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.progress-bar-bg {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); /* אנימציה חלקה לטעינה */
+}
+
+/* Goals specific styling */
+.goal-card {
+    border-left: 3px solid #00f0ff;
+}
+
+.neon-blue-fill {
+    background: linear-gradient(90deg, #0055ff, #00f0ff);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+.percent-text {
+    color: #00f0ff;
+}
+
+.goal-amounts {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+/* Deposit Action area for Goals */
+.deposit-action {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.deposit-action input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.deposit-action input:focus {
+    outline: none;
+    border-color: #00f0ff;
+}
+
+.deposit-action button {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    border: 1px solid #00f0ff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.deposit-action button:hover {
+    background: #00f0ff;
+    color: #000;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+/* Card Actions (Edit & Delete Buttons) */
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.icon-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.delete-btn:hover {
+    filter: drop-shadow(0 0 5px #f44336);
+}
+
+.edit-btn:hover {
+    filter: drop-shadow(0 0 5px #00f0ff);
+}
+
+.save-btn {
+    opacity: 1;
+}
+
+/* Edit Name Inline Input */
+.goal-name-edit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-name-input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #00f0ff;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
+    width: 140px;
+    box-shadow: inset 0 0 5px rgba(0, 240, 255, 0.2);
+}
+
+.edit-name-input:focus {
+    border-color: #00f0ff;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}

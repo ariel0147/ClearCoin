@@ -10,6 +10,7 @@ import AddTransaction from '../AddTransaction/AddTransaction';
 import Assets from '../Assets/Assets';
 import Paychecks from '../Paychecks/Paychecks';
 import './Dashboard.css';
+import Budgets from '../Budgets/Budgets';
 
 const Dashboard = () => {
     const [userName, setUserName] = useState('');
@@ -129,7 +130,7 @@ const Dashboard = () => {
                             onTransactionAdded={() => fetchTransactions()}
                         />
                     )}
-                    {activeTab === 'budgets' && <h2 className="section-title">יעדים ותקציב (בקרוב)</h2>}
+                    {activeTab === 'budgets' && <Budgets showNotification={showNotification} />}
 
                 </div>
             </div>

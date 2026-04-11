@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Tesseract = require('tesseract.js');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 // יצירת תיקיית העלאות אם היא לא קיימת
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -78,6 +78,25 @@ async function prepareDB() {
             type VARCHAR(50),
             icon VARCHAR(255)
             ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+
+        // טבלת יעדי חיסכון (Goals)
+        await pool.query(`CREATE TABLE IF NOT EXISTS Goals (
+            goal_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            name VARCHAR(100),
+            target_amount DECIMAL(10,2),
+            current_amount DECIMAL(10,2) DEFAULT 0,
+            icon VARCHAR(50)
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+
+        // טבלת תקציבים חודשיים (Budgets)
+        await pool.query(`CREATE TABLE IF NOT EXISTS Budgets (
+            budget_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            category VARCHAR(100),
+            limit_amount DECIMAL(10,2),
+            month VARCHAR(7) -- פורמט של YYYY-MM כדי לדעת לאיזה חודש התקציב שייך
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 
         console.log('✅ מסד הנתונים מוכן לעבודה!');
     } catch (err) {
@@ -197,106 +216,200 @@ app.delete('/api/assets/:id', authenticateToken, async (req, res) => {
 });
 
 // --- נתיב העלאה וסריקת תלוש שכר אמיתית עם Tesseract A.I (גרסה 3 - חכמה) ---
+// --- נתיב העלאה וסריקת תלוש שכר עם מודל AI ויזואלי (הגרסה החכמה) ---
 app.post('/api/scan-paycheck', authenticateToken, upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'לא נבחר קובץ סרוק' });
         }
 
-        if (req.file.mimetype === 'application/pdf') {
-            const fs = require('fs');
-            fs.unlinkSync(req.file.path);
-            return res.status(400).json({ message: 'מערכת ה-AI תומכת כרגע בתמונות בלבד (JPG/PNG).' });
-        }
+        console.log(`✅ מתחיל סריקת AI ויזואלית לקובץ: ${req.file.filename}`);
 
-        console.log(`✅ מתחיל סריקת A.I לקובץ: ${req.file.filename}`);
+        // אתחול מודל ה-AI
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const { data: { text } } = await Tesseract.recognize(
-            req.file.path,
-            'heb+eng'
-        );
-
-        console.log("📄 סריקה הושלמה. מפעיל אלגוריתם חילוץ V3...");
-
-        // 1. תאריך
-        let dateStr = new Date().toISOString().split('T')[0];
-        const dateMatch = text.match(/\b(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})\b/);
-        if (dateMatch) {
-            let day = dateMatch[1].padStart(2, '0');
-            let month = dateMatch[2].padStart(2, '0');
-            let year = dateMatch[3];
-            if (year.length === 2) year = '20' + year;
-            dateStr = `${year}-${month}-${day}`;
-        }
-
-        // 2. חילוץ שכר לתשלום (נטו / לאחר הורדות)
-        let guessedNetSalary = '0.00';
-
-        // מוצא את כל המספרים העשרוניים במסמך (למשל 8500.50 או 12,000.00)
-        const decimalRegex = /\b\d{1,3}(?:,\d{3})*\.\d{2}\b/g;
-        const fallbackRegex = /\b\d{4,5}\.\d{2}\b/g;
-
-        const decimalNumbers = text.match(decimalRegex) || text.match(fallbackRegex) || [];
-
-        if (decimalNumbers.length > 0) {
-            // מנקים פסיקים והופכים למספרים אמיתיים (מעל 1500 ש"ח)
-            const validSalaries = decimalNumbers
-                .map(n => parseFloat(n.replace(/,/g, '')))
-                .filter(n => n > 1500 && n < 80000);
-
-            if (validSalaries.length > 0) {
-                // טריק 1: חיפוש מספר שנמצא בסמוך למילים מובהקות של שכר נטו (כולל שגיאות כתיב של ה-OCR)
-                const netMatch = text.match(/(?:לתשלום|נטו|העברה|תטלומים|הורדות)[\s\S]{0,35}?(\d{1,3}(?:,\d{3})*\.\d{2}|\d{4,5}\.\d{2})/);
-
-                if (netMatch) {
-                    guessedNetSalary = parseFloat(netMatch[1].replace(/,/g, '')).toFixed(2);
-                    console.log("🎯 הנטו אותר באמצעות מילת מפתח:", guessedNetSalary);
-                } else {
-                    // טריק 2: הנטו לרוב מופיע בחלק הכי תחתון של התלוש.
-                    // לכן ניקח את המספר החוקי *האחרון* שהמערכת קראה!
-                    guessedNetSalary = validSalaries[validSalaries.length - 1].toFixed(2);
-                    console.log("🎯 הנטו אותר לפי מיקום בתחתית התלוש:", guessedNetSalary);
-                }
+        // המרת התמונה לפורמט שה-API מבין
+        const imageAsBase64 = fs.readFileSync(req.file.path).toString("base64");
+        const imagePart = {
+            inlineData: {
+                data: imageAsBase64,
+                mimeType: req.file.mimetype
             }
+        };
+
+        // כתיבת פרומפט מדויק שינחה את ה-AI איך לחלץ את הנתונים
+        const prompt = `
+        You are a highly advanced financial data extraction AI. 
+        Attached is an image of an Israeli paycheck (תלוש שכר).
+        Please analyze the image and extract the following details:
+        1. "company": The name of the employer / company (שם המעסיק).
+        2. "date": The date of the paycheck in YYYY-MM-DD format (usually the month and year it was issued).
+        3. "netSalary": The absolute final Net Salary to be paid to the bank account (סך הכל לתשלום / נטו לתשלום). Do NOT extract the Gross (ברוטו). Return this as a number only, without currency symbols or commas.
+        4. "taxes": The total deductions including Income Tax (מס הכנסה), National Insurance (ביטוח לאומי), and Health Insurance (מס בריאות). Return as a number only.
+
+        Respond ONLY with a valid JSON object. No markdown formatting, no explanations. 
+        Example format:
+        {
+          "company": "Company Name Ltd",
+          "date": "2023-10-01",
+          "netSalary": "8500.50",
+          "taxes": "1200.00"
         }
+        `;
 
-        const guessedTaxes = (parseFloat(guessedNetSalary) * 0.2).toFixed(2); // נשאיר כרגע הערכה גסה למס
+        // שליחה למודל
+        const result = await model.generateContent([prompt, imagePart]);
+        let responseText = result.response.text();
 
-        // 3. חילוץ שם המעסיק (מקום העבודה)
-        let companyName = '';
+        // ניקוי הטקסט במקרה שהמודל החזיר עטיפה של Markdown (כמו ```json ... ```)
+        responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
 
-        // מנסה למצוא שם שמסתיים בבע"מ/ע"מ (לוקח עד 4 מילים לפני הבע"מ)
-        const companyMatch = text.match(/([א-ת]+(?:\s+[א-ת]+){0,3}\s+(?:בע"מ|בע״מ|ע"מ|בעמ|inc|ltd))/i);
-        if (companyMatch) {
-            companyName = companyMatch[1].trim();
-        } else {
-            // אם אין בע"מ, המערכת תסרוק את השורות הראשונות של התלוש (שם לרוב מופיע הלוגו/שם העסק)
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
-            for (let line of lines) {
-                // אם השורה כולה בעברית ואינה מכילה מילות "תלוש שכר" גנריות
-                if (/^[א-ת\s]+$/.test(line) && !line.includes('תלוש') && !line.includes('שכר') && !line.includes('חודש')) {
-                    companyName = line;
-                    break;
-                }
-            }
-        }
+        console.log("📄 תשובת ה-AI:", responseText);
 
-        // אם כלום לא עבד, נשים טקסט ברירת מחדל
-        if (!companyName || companyName.length < 2) {
-            companyName = 'לא מזהה מעסיק (נא להזין)';
-        }
+        const parsedData = JSON.parse(responseText);
 
-        // מחזירים את התשובה ללקוח
+        // מחיקת הקובץ מהשרת אחרי הסריקה כדי לא לבזבז מקום
+        fs.unlinkSync(req.file.path);
+
+        // החזרת הנתונים המדויקים ללקוח
         res.json({
-            company: companyName,
-            date: dateStr,
-            netSalary: guessedNetSalary,
-            taxes: guessedTaxes
+            company: parsedData.company || 'לא זוהה',
+            date: parsedData.date || new Date().toISOString().split('T')[0],
+            netSalary: parsedData.netSalary || '0.00',
+            taxes: parsedData.taxes || '0.00'
         });
 
     } catch (err) {
-        console.error('❌ שגיאה בסריקת תלוש:', err);
-        res.status(500).json({ message: 'שגיאה בעיבוד התלוש בשרת' });
+        console.error('❌ שגיאה בסריקת תלוש חכמה:', err);
+        // נוודא שאנחנו מוחקים את הקובץ גם אם הייתה שגיאה
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ message: 'שגיאה בפענוח התלוש בשרת' });
     }
+});
+// ==========================================
+//          API ליעדים (Goals)
+// ==========================================
+
+// שליפת כל היעדים
+app.get('/api/goals', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM Goals WHERE user_id = ?', [req.user.id]);
+        res.json(rows);
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשליפת יעדים' }); }
+});
+
+// יצירת יעד חדש
+app.post('/api/goals', authenticateToken, async (req, res) => {
+    try {
+        const { name, target_amount, current_amount, icon } = req.body;
+        await pool.query(
+            'INSERT INTO Goals (user_id, name, target_amount, current_amount, icon) VALUES (?, ?, ?, ?, ?)',
+            [req.user.id, name, target_amount, current_amount || 0, icon]
+        );
+        res.status(201).json({ message: 'היעד נוצר בהצלחה!' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשמירת יעד' }); }
+});
+
+// הוספת כסף ליעד קיים (עדכון current_amount)
+app.put('/api/goals/:id', authenticateToken, async (req, res) => {
+    try {
+        const { add_amount } = req.body;
+        await pool.query(
+            'UPDATE Goals SET current_amount = current_amount + ? WHERE goal_id = ? AND user_id = ?',
+            [add_amount, req.params.id, req.user.id]
+        );
+        res.json({ message: 'הופקד כסף ליעד בהצלחה!' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה בעדכון יעד' }); }
+});
+
+// מחיקת יעד
+app.delete('/api/goals/:id', authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM Goals WHERE goal_id = ? AND user_id = ?', [req.params.id, req.user.id]);
+        res.json({ message: 'היעד נמחק' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה במחיקת יעד' }); }
+});
+// עריכת שם היעד
+app.put('/api/goals/edit/:id', authenticateToken, async (req, res) => {
+    try {
+        const { name } = req.body;
+        await pool.query(
+            'UPDATE Goals SET name = ? WHERE goal_id = ? AND user_id = ?',
+            [name, req.params.id, req.user.id]
+        );
+        res.json({ message: 'שם היעד עודכן בהצלחה!' });
+    } catch (err) {
+        console.error('שגיאה בעדכון שם היעד:', err);
+        res.status(500).json({ message: 'שגיאה בעדכון שם היעד' });
+    }
+});
+// ==========================================
+//          API לתקציבים (Budgets)
+// ==========================================
+
+// שליפת התקציבים לחודש מסוים + חישוב חכם של כמה כבר הוצאנו
+// שליפת התקציבים לחודש מסוים + חישוב חכם של כמה כבר הוצאנו (גרסה מתוקנת ובטוחה)
+app.get('/api/budgets', authenticateToken, async (req, res) => {
+    try {
+        const currentMonth = req.query.month || new Date().toISOString().slice(0, 7);
+
+        // 1. שליפת כל התקציבים של המשתמש לאותו חודש
+        const [budgets] = await pool.query(
+            'SELECT * FROM Budgets WHERE user_id = ? AND month = ?',
+            [req.user.id, currentMonth]
+        );
+
+        // 2. שליפת כל ההוצאות של המשתמש לאותו חודש בלבד
+        const [expenses] = await pool.query(
+            `SELECT amount, description FROM Transactions 
+             WHERE user_id = ? AND type = 'expense' 
+             AND DATE_FORMAT(transaction_date, '%Y-%m') = ?`,
+            [req.user.id, currentMonth]
+        );
+
+        // 3. חיבור וחישוב ההוצאות בתוך השרת (מונע שגיאות מסד נתונים)
+        const result = budgets.map(budget => {
+            let spent = 0;
+            expenses.forEach(expense => {
+                // בדיקה: אם תיאור ההוצאה מכיל את שם הקטגוריה (למשל "מסעדה" בתוך "מסעדת פסטה")
+                if (expense.description && expense.description.includes(budget.category)) {
+                    spent += parseFloat(expense.amount);
+                }
+            });
+
+            return {
+                ...budget,
+                spent_amount: spent
+            };
+        });
+
+        res.json(result);
+    } catch (err) {
+        console.error('❌ שגיאה מפורטת בשליפת תקציב:', err);
+        res.status(500).json({ message: 'שגיאה בשליפת תקציבים' });
+    }
+});
+
+// הגדרת תקציב חדש לקטגוריה
+app.post('/api/budgets', authenticateToken, async (req, res) => {
+    try {
+        const { category, limit_amount, month } = req.body;
+        await pool.query(
+            'INSERT INTO Budgets (user_id, category, limit_amount, month) VALUES (?, ?, ?, ?)',
+            [req.user.id, category, limit_amount, month]
+        );
+        res.status(201).json({ message: 'תקציב הוגדר בהצלחה!' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה בשמירת תקציב' }); }
+});
+
+// מחיקת תקציב
+app.delete('/api/budgets/:id', authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM Budgets WHERE budget_id = ? AND user_id = ?', [req.params.id, req.user.id]);
+        res.json({ message: 'התקציב בוטל' });
+    } catch (err) { res.status(500).json({ message: 'שגיאה במחיקת תקציב' }); }
 });
 app.listen(5000, () => console.log('🚀 השרת באוויר על פורט 5000'));

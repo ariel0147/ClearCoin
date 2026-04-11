@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './Paychecks.css';
 
+
 const Paychecks = ({ showNotification, onTransactionAdded }) => {
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
