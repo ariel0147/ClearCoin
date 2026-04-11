@@ -1,0 +1,155 @@
+.transactions-full-container {
+    animation: fadeIn 0.5s ease;
+}
+
+.transactions-header {
+    margin-bottom: 25px;
+}
+
+/* אזור הסינונים והחיפוש */
+.filters-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+}
+
+.search-box input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: #fff;
+    padding: 12px 15px 12px 40px; /* ריווח לאייקון מצד ימין בגלל שזה RTL */
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #00f0ff;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.filters-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filters-group select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+}
+
+.filters-group select:focus {
+    border-color: #00f0ff;
+}
+
+.filters-group select option {
+    background: #121212;
+    color: #fff;
+}
+
+.export-btn {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    border: 1px solid #00f0ff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: #00f0ff;
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+}
+
+/* עיצוב הטבלה */
+.table-panel {
+    padding: 20px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+}
+
+.transactions-table th {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    padding: 15px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transactions-table td {
+    padding: 15px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.transactions-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.type-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.type-badge.income {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.type-badge.expense {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+}
+
+.amount.income { color: #4caf50; font-weight: bold; }
+.amount.expense { color: #f44336; font-weight: bold; }
+
+@media (max-width: 768px) {
+    .filters-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filters-group {
+        justify-content: stretch;
+    }
+    .filters-group select, .export-btn {
+        flex: 1;
+    }
+}

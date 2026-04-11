@@ -11,7 +11,7 @@ import Assets from '../Assets/Assets';
 import Paychecks from '../Paychecks/Paychecks';
 import './Dashboard.css';
 import Budgets from '../Budgets/Budgets';
-
+import Transactions from '../Transactions/Transactions';
 const Dashboard = () => {
     const [userName, setUserName] = useState('');
     const [transactions, setTransactions] = useState([]);
@@ -122,8 +122,13 @@ const Dashboard = () => {
                         <Assets showNotification={showNotification} />
                     )}
 
-                    {/* מסכי פלייסבולדר לבינתיים */}
-                    {activeTab === 'transactions' && <h2 className="section-title">פירוט תנועות ועו"ש (בקרוב)</h2>}
+
+                    {activeTab === 'transactions' && (
+                        <Transactions
+                            transactions={transactions}
+                            onDelete={requestDeleteTransaction}
+                        />
+                    )}
                     {activeTab === 'paychecks' && (
                         <Paychecks
                             showNotification={showNotification}
