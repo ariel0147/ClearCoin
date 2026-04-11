@@ -66,18 +66,15 @@ async function prepareDB() {
             type VARCHAR(50)
             )`);
 
-        // === השורה שהייתה פה (DROP TABLE) נמחקה! ===
-        // מעכשיו הנתונים יישמרו לתמיד.
-
         // טבלת נכסים
         await pool.query(`CREATE TABLE IF NOT EXISTS Assets (
-                                                                asset_id INT AUTO_INCREMENT PRIMARY KEY,
-                                                                user_id INT NOT NULL,
-                                                                name VARCHAR(100),
+            asset_id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            name VARCHAR(100),
             value DECIMAL(10,2),
             type VARCHAR(50),
             icon VARCHAR(255)
-            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 
         // טבלת יעדי חיסכון (Goals)
         await pool.query(`CREATE TABLE IF NOT EXISTS Goals (
@@ -91,18 +88,27 @@ async function prepareDB() {
 
         // טבלת תקציבים חודשיים (Budgets)
         await pool.query(`CREATE TABLE IF NOT EXISTS Budgets (
-            budget_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            category VARCHAR(100),
+                                                                 budget_id INT AUTO_INCREMENT PRIMARY KEY,
+                                                                 user_id INT NOT NULL,
+                                                                 category VARCHAR(100),
             limit_amount DECIMAL(10,2),
             month VARCHAR(7) -- פורמט של YYYY-MM כדי לדעת לאיזה חודש התקציב שייך
-        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+            ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+
+        // === תוספת: עדכון טבלת משתמשים קיימת - הוספת עמודת אווטאר ===
+        try {
+            await pool.query(`ALTER TABLE Users ADD COLUMN avatar VARCHAR(50) DEFAULT '👤'`);
+            console.log('✅ עמודת אווטאר נוספה לטבלת המשתמשים');
+        } catch (err) {
+            // מתעלם מהשגיאה במקרה שהעמודה כבר קיימת כדי שהשרת לא יקרוס
+        }
 
         console.log('✅ מסד הנתונים מוכן לעבודה!');
     } catch (err) {
         console.error('❌ שגיאה בהכנת ה-DB:', err.message);
     }
 }
+
 prepareDB();
 
 const authenticateToken = (req, res, next) => {
@@ -417,13 +423,25 @@ app.delete('/api/budgets/:id', authenticateToken, async (req, res) => {
 // ==========================================
 
 // שליפת נתוני המשתמש (שם, אימייל ושם משתמש)
+// שליפת נתוני המשתמש (כולל אווטאר)
 app.get('/api/user/profile', authenticateToken, async (req, res) => {
     try {
-        const [users] = await pool.query('SELECT name, email, userName FROM Users WHERE user_id = ?', [req.user.id]);
+        const [users] = await pool.query('SELECT name, email, userName, avatar FROM Users WHERE user_id = ?', [req.user.id]);
         if (users.length === 0) return res.status(404).json({ message: 'משתמש לא נמצא' });
         res.json(users[0]);
     } catch (err) {
         res.status(500).json({ message: 'שגיאה בשליפת נתוני משתמש' });
+    }
+});
+
+// עדכון תמונת אווטאר
+app.put('/api/user/avatar', authenticateToken, async (req, res) => {
+    try {
+        const { avatar } = req.body;
+        await pool.query('UPDATE Users SET avatar = ? WHERE user_id = ?', [avatar, req.user.id]);
+        res.json({ message: 'האווטאר עודכן בהצלחה!' });
+    } catch (err) {
+        res.status(500).json({ message: 'שגיאה בעדכון אווטאר' });
     }
 });
 

@@ -57,3 +57,13 @@
         font-size: 1rem; /* מקטין מעט את הכתב בנייד */
     }
 }
+.user-avatar-top {
+    font-size: 1.5rem;
+    margin-left: 10px; /* מרווח יפה בין הדמות לשם */
+}
+
+/* כדי שהאווטאר והטקסט יהיו באותה שורה ובאמצע */
+.welcome-message {
+    display: flex;
+    align-items: center;
+}

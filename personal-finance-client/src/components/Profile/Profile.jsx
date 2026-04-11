@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './Profile.css';
 
-const Profile = ({ showNotification, setUserNameGlobal }) => {
-    const [userData, setUserData] = useState({ name: '', email: '', userName: '' });
+// רשימת האווטארים לבחירה
+const AVATARS = ['👤', '👨‍💻', '👩‍💻', '🤖', '👽', '🥷', '🦁', '🐉', '🦉', '🚀', '💎', '👑'];
+
+const Profile = ({ showNotification, setUserNameGlobal, setUserAvatarGlobal }) => {
+    // הוספנו את ה-avatar לסטייט ההתחלתי
+    const [userData, setUserData] = useState({ name: '', email: '', userName: '', avatar: '👤' });
     const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
     useEffect(() => {
@@ -17,10 +21,39 @@ const Profile = ({ showNotification, setUserNameGlobal }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                setUserData(data);
+                // שומרים גם את האווטאר שמגיע מהשרת
+                setUserData({ ...data, avatar: data.avatar || '👤' });
+                // מעדכנים מיד את הבר העליון
+                if (setUserAvatarGlobal) setUserAvatarGlobal(data.avatar || '👤');
             }
         } catch (err) {
             console.error('שגיאה בטעינת נתוני משתמש:', err);
+        }
+    };
+
+    // --- הפונקציה החדשה לטיפול בבחירת אווטאר ---
+    const handleAvatarSelect = async (avatar) => {
+        // מעדכנים את התצוגה מיד כדי שירגיש מהיר וחלוק
+        setUserData({ ...userData, avatar });
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/user/avatar', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ avatar })
+            });
+
+            if (response.ok) {
+                localStorage.setItem('avatar', avatar);
+                if (setUserAvatarGlobal) setUserAvatarGlobal(avatar);
+                if (showNotification) showNotification('האווטאר נשמר בהצלחה!', 'success');
+            }
+        } catch (err) {
+            if (showNotification) showNotification('שגיאה בשמירת האווטאר', 'error');
         }
     };
 
@@ -39,7 +72,6 @@ const Profile = ({ showNotification, setUserNameGlobal }) => {
 
             if (response.ok) {
                 if (showNotification) showNotification('הפרטים עודכנו בהצלחה!', 'success');
-                // עדכון השם ב-LocalStorage ובסרגל העליון (Topbar)
                 localStorage.setItem('name', userData.name);
                 if (setUserNameGlobal) setUserNameGlobal(userData.name);
             } else {
@@ -76,7 +108,7 @@ const Profile = ({ showNotification, setUserNameGlobal }) => {
 
             if (response.ok) {
                 if (showNotification) showNotification('הסיסמה שונתה בהצלחה!', 'success');
-                setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' }); // איפוס הטופס
+                setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
             } else {
                 if (showNotification) showNotification(data.message || 'שגיאה בעדכון הסיסמה', 'error');
             }
@@ -90,6 +122,22 @@ const Profile = ({ showNotification, setUserNameGlobal }) => {
             <div className="profile-header">
                 <h2 className="section-title">הגדרות <span className="neon-text">פרופיל</span></h2>
                 <p>נהל את החשבון האישי שלך ואת הגדרות האבטחה.</p>
+            </div>
+
+            {/* --- אזור בחירת האווטאר החדש --- */}
+            <div className="glass-panel avatar-panel">
+                <h3>בחר דמות ייצוגית</h3>
+                <div className="avatars-grid">
+                    {AVATARS.map(avatar => (
+                        <div
+                            key={avatar}
+                            className={`avatar-item ${userData.avatar === avatar ? 'active' : ''}`}
+                            onClick={() => handleAvatarSelect(avatar)}
+                        >
+                            {avatar}
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className="dashboard-grid">

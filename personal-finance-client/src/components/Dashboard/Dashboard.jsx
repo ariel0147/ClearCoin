@@ -14,7 +14,9 @@ import Transactions from '../Transactions/Transactions';
 import Profile from '../Profile/Profile';
 
 const Dashboard = () => {
+
     const [userName, setUserName] = useState('');
+    const [userAvatar, setUserAvatar] = useState('👤'); // <--- סטייט חדש לאווטאר
     const [transactions, setTransactions] = useState([]);
 
     // --- מנגנון הניווט (איזה מסך מוצג כרגע) ---
@@ -74,13 +76,14 @@ const Dashboard = () => {
 
     useEffect(() => {
         const storedName = localStorage.getItem('name');
+        const storedAvatar = localStorage.getItem('avatar'); // <--- שולף את האווטאר אם קיים
         if (!storedName) navigate('/');
         else {
             setUserName(storedName);
+            if (storedAvatar) setUserAvatar(storedAvatar);
             fetchTransactions();
         }
     }, [navigate]);
-
     return (
         <div className="dashboard-layout" dir="rtl">
             {/* מעבירים לתפריט הצד את הסטייט וגם את פונקציית ההתנתקות! */}
@@ -91,7 +94,7 @@ const Dashboard = () => {
             />
 
             <div className="main-area">
-                <Topbar userName={userName} />
+                <Topbar userName={userName} userAvatar={userAvatar} />
 
                 <div className="content-area">
 
@@ -142,6 +145,7 @@ const Dashboard = () => {
                         <Profile
                             showNotification={showNotification}
                             setUserNameGlobal={setUserName}
+                            setUserAvatarGlobal={setUserAvatar}
                         />
                     )}
 
