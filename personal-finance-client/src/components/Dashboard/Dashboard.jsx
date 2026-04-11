@@ -12,6 +12,7 @@ import './Dashboard.css';
 import Budgets from '../Budgets/Budgets';
 import Transactions from '../Transactions/Transactions';
 import Profile from '../Profile/Profile';
+import ImportModal from '../ImportModal/ImportModal';
 
 const Dashboard = () => {
 
@@ -25,6 +26,7 @@ const Dashboard = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [toast, setToast] = useState({ message: '', type: '' });
     const [transactionToDelete, setTransactionToDelete] = useState(null);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -103,12 +105,18 @@ const Dashboard = () => {
                     {/* תצוגה 1: מסך הסקירה הכללית */}
                     {activeTab === 'overview' && (
                         <>
-                            <div className="dashboard-header-flex">
-                                <h2 className="section-title">סקירה כללית</h2>
+                        <div className="dashboard-header-flex">
+                            <h2 className="section-title">סקירה כללית</h2>
+                            <div style={{display: 'flex', gap: '10px'}}>
+                                <button className="import-btn" style={{padding: '8px 15px'}} onClick={() => setIsImportModalOpen(true)}>
+                                    ✨ ייבוא AI
+                                </button>
                                 <button className="add-btn" onClick={() => setIsAddModalOpen(true)}>
                                     + תנועה חדשה
                                 </button>
                             </div>
+                        </div>
+
                             <Overview transactions={transactions} />
                             <div className="bottom-row">
                                 <div className="transactions-section">
@@ -131,6 +139,7 @@ const Dashboard = () => {
                         <Transactions
                             transactions={transactions}
                             onDelete={requestDeleteTransaction}
+                            onOpenImport={() => setIsImportModalOpen(true)} // מעביר את הפונקציה שפותחת את החלון
                         />
                     )}
                     {activeTab === 'paychecks' && (
@@ -174,6 +183,15 @@ const Dashboard = () => {
                 </div>
             )}
 
+            <ImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onSuccess={() => {
+                    fetchTransactions(); // מרענן את הטבלה
+                    setIsImportModalOpen(false); // סוגר את החלון
+                }}
+                showNotification={showNotification}
+            />
             {toast.message && (
                 <div className={`cyber-toast ${toast.type}`}>{toast.message}</div>
             )}

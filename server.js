@@ -478,4 +478,95 @@ app.put('/api/user/password', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'שגיאה בעדכון סיסמה' });
     }
 });
+// ==========================================
+//          API לייבוא תנועות חכם מקובץ בנק (AI)
+// ==========================================
+
+// ==========================================
+//          API לייבוא תנועות חכם מקובץ בנק (AI) - תומך PDF ו-CSV
+// ==========================================
+
+app.post('/api/transactions/import', authenticateToken, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'לא נבחר קובץ' });
+        }
+
+        console.log(`✅ מתחיל פענוח AI לקובץ תנועות בנק: ${req.file.filename}`);
+
+        // 1. קריאת הקובץ והמרתו ל-Base64 כדי לתמוך גם ב-PDF וגם ב-CSV/TXT
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const fileAsBase64 = fileBuffer.toString("base64");
+
+        // 2. הגדרת סוג הקובץ (MIME type).
+        // טריק קטן: מודל Gemini קורא קבצי CSV הכי טוב כשהם מוגדרים כ-text/plain
+        let mimeType = req.file.mimetype;
+        if (mimeType.includes('excel') || mimeType.includes('csv') || req.file.originalname.endsWith('.csv')) {
+            mimeType = 'text/plain';
+        }
+
+        const filePart = {
+            inlineData: {
+                data: fileAsBase64,
+                mimeType: mimeType
+            }
+        };
+
+        // אתחול המודל
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        // 3. הפרומפט החכם (שים לב שהורדתי את השרשור של הטקסט בסוף, כי אנחנו שולחים קובץ)
+        const prompt = `
+        You are an expert financial AI assistant for the Israeli market.
+        Attached is a bank or credit card statement file (can be a PDF document or a CSV/Text file).
+        Your task is to extract all the valid financial transactions and return ONLY a valid JSON array of objects.
+
+        For each transaction, analyze the data and format it exactly as follows:
+        {
+          "transaction_date": "YYYY-MM-DD",
+          "description": "Cleaned up business name in Hebrew (e.g., 'פז' instead of 'תחנת דלק פז 1234', 'מקדונלדס' instead of 'MCDONALDS ISRAEL')",
+          "amount": Number (absolute positive value, no currency symbols),
+          "type": "income" (if money came in/credit) or "expense" (if money went out/debit),
+          "category": "A logical category in Hebrew (e.g., 'מסעדות', 'רכב ודלק', 'סופרמרקט', 'חשבונות', 'משכורת', 'ביגוד', 'אחר')"
+        }
+
+        Ignore table headers, account summaries, balances, and empty lines. 
+        Respond ONLY with the JSON array. Do not wrap it in markdown. Do not explain.
+        `;
+
+        // 4. שליחה ל-AI: מעבירים גם את הפרומפט וגם את הקובץ!
+        const result = await model.generateContent([prompt, filePart]);
+        let responseText = result.response.text();
+
+        // ניקוי עטיפות Markdown
+        responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const transactions = JSON.parse(responseText);
+        let insertedCount = 0;
+
+        // שומרים למסד הנתונים
+        for (const t of transactions) {
+            const fullDescription = `${t.description} (${t.category})`;
+
+            await pool.query(
+                'INSERT INTO Transactions (user_id, amount, transaction_date, description, type) VALUES (?, ?, ?, ?, ?)',
+                [req.user.id, t.amount, t.transaction_date, fullDescription, t.type]
+            );
+            insertedCount++;
+        }
+
+        fs.unlinkSync(req.file.path);
+
+        console.log(`🎉 יובאו בהצלחה ${insertedCount} תנועות!`);
+        res.json({ message: 'התנועות יובאו וקוטלגו בהצלחה!', count: insertedCount });
+
+    } catch (err) {
+        console.error('❌ שגיאה בייבוא התנועות:', err);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ message: 'שגיאה בפענוח קובץ הבנק' });
+    }
+});
 app.listen(5000, () => console.log('🚀 השרת באוויר על פורט 5000'));
