@@ -1,3 +1,45 @@
+/* ========================================= */
+/* משתני צבע - Dark Mode (ברירת מחדל)        */
+/* ========================================= */
+:root {
+    --bg-main: #0a0a0a;
+    --bg-panel: rgba(30, 30, 30, 0.7);
+    --text-color: #ffffff;
+    --accent-color: #00ff88;
+    --sidebar-bg: #111111;
+    --card-glow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================= */
+/* משתני צבע - Light Mode (לבן וזוהר ירוק)   */
+/* ========================================= */
+body.light-theme {
+    --bg-main: #ffffff;
+    --bg-panel: rgba(245, 255, 245, 0.8);
+    --text-color: #1a1a1a;
+    --accent-color: #2ecc71;
+    --sidebar-bg: #f0fdf4;
+    --card-glow: 0 0 15px rgba(46, 204, 113, 0.3); /* הזוהר הירוק היוקרתי */
+}
+
+/* החלת הצבעים על גוף האתר ואנימציית מעבר חלקה */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-color) !important;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* עדכון אוטומטי של כל הפאנלים/כרטיסיות באפליקציה */
+.glass-panel, .dashboard-layout .glass-panel {
+    background: var(--bg-panel) !important;
+    box-shadow: var(--card-glow) !important;
+    border: 1px solid rgba(0, 255, 136, 0.1) !important;
+    color: var(--text-color) !important;
+    transition: all 0.4s ease;
+}
+
+
+
 .dashboard-container {
     min-height: 100vh;
     background-color: #01040a;
@@ -473,4 +515,366 @@
         flex-direction: column;
         width: 100%;
     }
+}
+
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - FINAL TOUCHES (תיקונים נקודתיים)      */
+/* ========================================================= */
+
+/* 1. רקעים כלליים וסרגל צד (נשמר כמו קודם ועובד מעולה) */
+body.light-theme {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+body.light-theme .dashboard-layout,
+body.light-theme .main-area,
+body.light-theme .content-area {
+    background-color: transparent !important;
+}
+body.light-theme .sidebar {
+    background-color: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+}
+body.light-theme .nav-item { color: #475569 !important; }
+body.light-theme .nav-item:hover,
+body.light-theme .nav-item.active {
+    color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+body.light-theme .sidebar-footer .logout-item { color: #ef4444 !important; }
+
+/* 2. פאנלים מרכזיים (נשמר כמו קודם) */
+body.light-theme .glass-panel,
+body.light-theme .modal-content,
+body.light-theme .add-transaction-modal,
+body.light-theme .transactions-section,
+body.light-theme .chart-section {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    backdrop-filter: none !important;
+}
+
+/* 3. טקסטים קריאים (נשמר כמו קודם) */
+body.light-theme p, body.light-theme label, body.light-theme td, body.light-theme th,
+body.light-theme h1, body.light-theme h2, body.light-theme h3, body.light-theme .welcome-message,
+body.light-theme span:not(.power-icon):not(.income):not(.expense):not(.toggle-thumb) {
+    color: #0f172a !important;
+}
+
+body.light-theme .income, body.light-theme .amount.income { color: #059669 !important; }
+body.light-theme .expense, body.light-theme .amount.expense { color: #dc2626 !important; }
+body.light-theme .add-btn, body.light-theme .btn-submit, body.light-theme .import-btn { color: #ffffff !important; }
+
+
+/* ========================================================= */
+/* התיקונים הממוקדים שביקשת (עוגה, מדדים, מודל תנועה)        */
+/* ========================================================= */
+
+/* תיקון מס' 1: הודעה בהירה וקריאה בגרף עוגה ובגרף הרגיל */
+body.light-theme .recharts-text { fill: #1e293b !important; font-weight: 600; }
+body.light-theme .recharts-cartesian-grid line { stroke: #e2e8f0 !important; }
+
+body.light-theme .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+}
+body.light-theme .recharts-tooltip-item,
+body.light-theme .recharts-tooltip-label,
+body.light-theme .recharts-tooltip-item-name,
+body.light-theme .recharts-tooltip-item-value {
+    color: #0f172a !important;
+}
+
+
+/* תיקון מס' 2: מסגרת נראית לעין במדדי התקציב (Budgets) */
+body.light-theme .budget-progress-bar-container,
+body.light-theme .progress-bar-bg {
+    background-color: #f1f5f9 !important; /* אפור סופר-בהיר לרקע */
+    border: 1px solid #cbd5e1 !important; /* מסגרת ברורה שרואים איפה המדד נגמר */
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+
+
+/* תיקון מס' 3: חלון הוספת תנועה - הפיכת השדות (Inputs) לבהירים וקריאים */
+body.light-theme .modal-content input,
+body.light-theme .modal-content select,
+body.light-theme .modal-content textarea,
+body.light-theme input,
+body.light-theme select {
+    background-color: #ffffff !important; /* מבטל את השחור */
+    color: #0f172a !important; /* טקסט שחור בזמן הקלדה */
+    border: 1px solid #cbd5e1 !important; /* מסגרת עדינה לשדה */
+}
+
+/* שומר על התיאור בתוך התיבה (Placeholder) קריא אבל לא מודגש מדי */
+body.light-theme input::placeholder {
+    color: #94a3b8 !important;
+}
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - תיקונים אחרונים (החזרת טקסטים חסרים) */
+/* ========================================================= */
+
+/* 1. החזרת התוויות (Labels) בחלון תנועה חדשה ובעדכון סיסמה (פרופיל) */
+body.light-theme .modal-content label,
+body.light-theme .add-transaction-modal label,
+body.light-theme .profile-container label,
+body.light-theme .profile-container h2,
+body.light-theme .profile-container h3,
+body.light-theme .form-group label {
+    color: #0f172a !important; /* צבע אפור-שחור קריא וברור */
+    font-weight: 600 !important;
+}
+
+/* 2. תיקון ספציפי לגרף העוגה - אילוץ רקע לבן וטקסט שחור להודעה */
+body.light-theme .recharts-tooltip-wrapper .recharts-default-tooltip {
+    background-color: #ffffff !important;
+    border: 2px solid #10b981 !important; /* מסגרת ירוקה כדי שיבלוט */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+}
+
+/* אילוץ הטקסט בתוך הודעת הגרף להיות קריא */
+body.light-theme .recharts-tooltip-item,
+body.light-theme .recharts-tooltip-item-name,
+body.light-theme .recharts-tooltip-item-value,
+body.light-theme .recharts-tooltip-label {
+    color: #0f172a !important;
+}
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - תיקון פינאלה לגרף, פרופיל ומודל      */
+/* ========================================================= */
+
+/* 1. תיקון אגרסיבי לגרף עוגה (הודעה לבנה וקריאה) */
+body.light-theme .recharts-tooltip-wrapper > div,
+body.light-theme .recharts-default-tooltip,
+body.light-theme .custom-tooltip {
+    background-color: #ffffff !important;
+    border: 2px solid #10b981 !important;
+    border-radius: 8px !important;
+}
+
+body.light-theme .recharts-tooltip-wrapper *,
+body.light-theme .custom-tooltip * {
+    color: #0f172a !important; /* הופך את כל הכתב בתוך הודעת הגרף לשחור */
+}
+
+/* 2. מסך עדכון סיסמה / פרופיל - הכרחת הכתב להיות שחור וברור */
+body.light-theme .profile-container *,
+body.light-theme .profile-section *,
+body.light-theme .password-section *,
+body.light-theme .form-group label {
+    color: #0f172a !important; /* כופה צבע שחור על כל התוויות והכותרות בפרופיל */
+}
+
+body.light-theme .profile-container input {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* 3. חלון תנועה חדשה - היפוך לכתב לבן כמו שביקשת */
+body.light-theme .add-transaction-modal label,
+body.light-theme .add-transaction-modal h2,
+body.light-theme .add-transaction-modal h3,
+body.light-theme .modal-content label,
+body.light-theme .modal-content h2,
+body.light-theme .modal-content h3 {
+    color: #ffffff !important; /* תוויות וכותרות בצבע לבן */
+}
+
+body.light-theme .add-transaction-modal input,
+body.light-theme .add-transaction-modal select,
+body.light-theme .modal-content input,
+body.light-theme .modal-content select {
+    color: #ffffff !important; /* טקסט לבן בתוך השדות של הסכום והתיאור */
+    background-color: rgba(255, 255, 255, 0.1) !important; /* רקע חצי-שקוף לשדה עצמו */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* הפלייסחולדר (הטקסט שמסביר מה לכתוב בתיבה) בחלון התנועה */
+body.light-theme .add-transaction-modal input::placeholder,
+body.light-theme .modal-content input::placeholder {
+    color: #e2e8f0 !important; /* אפור בהיר כדי שייראה טוב על הלבן החדש */
+}
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - תיקון מסך התנועות המלא               */
+/* ========================================================= */
+
+/* 1. אילוץ טקסט שחור-קריא לכל הטבלאות, הרשימות, והכותרות במסך התנועות */
+body.light-theme .transactions-container *,
+body.light-theme .transactions-page *,
+body.light-theme .transaction-item *,
+body.light-theme .transaction-list * {
+    color: #0f172a !important;
+}
+
+/* 2. הגנה קריטית: החזרת הסכומים במסך התנועות לירוק ואדום חיים */
+body.light-theme .transactions-container .income,
+body.light-theme .transactions-page .income,
+body.light-theme .transaction-item .income,
+body.light-theme .transaction-list .income {
+    color: #059669 !important;
+    font-weight: 700 !important;
+}
+
+body.light-theme .transactions-container .expense,
+body.light-theme .transactions-page .expense,
+body.light-theme .transaction-item .expense,
+body.light-theme .transaction-list .expense {
+    color: #dc2626 !important;
+    font-weight: 700 !important;
+}
+
+/* 3. שדות החיפוש והסינון (Filters) בתוך מסך התנועות */
+body.light-theme .transactions-container input,
+body.light-theme .transactions-container select,
+body.light-theme .transactions-page input,
+body.light-theme .transactions-page select {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* הפלייסחולדר בשדות הסינון */
+body.light-theme .transactions-container input::placeholder,
+body.light-theme .transactions-page input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* 4. שמירה על כפתורי הפעולות (כמו כפתור המחיקה או העריכה) שלא יהפכו לשחור */
+body.light-theme .transactions-container button,
+body.light-theme .transactions-page button,
+body.light-theme .transaction-item button {
+    color: #ffffff !important;
+}
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - עיצוב מחדש ונקי לחלון תנועה חדשה     */
+/* ========================================================= */
+
+/* 1. רקע לבן טהור ונקי לחלון הקופץ */
+body.light-theme .add-transaction-modal,
+body.light-theme .modal-content {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: none !important;
+}
+
+/* 2. כל הכותרות והתוויות (סכום, קטגוריה וכו') בשחור קריא וברור! */
+body.light-theme .add-transaction-modal h2,
+body.light-theme .add-transaction-modal h3,
+body.light-theme .add-transaction-modal label,
+body.light-theme .modal-content h2,
+body.light-theme .modal-content h3,
+body.light-theme .modal-content label {
+    color: #0f172a !important; /* אפור-שחור חזק */
+    font-weight: 700 !important;
+}
+
+/* 3. שדות ההזנה (תיבות הטקסט והבחירה) - רקע לבן וכתב שחור */
+body.light-theme .add-transaction-modal input,
+body.light-theme .add-transaction-modal select,
+body.light-theme .modal-content input,
+body.light-theme .modal-content select,
+body.light-theme .modal-content textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+}
+
+body.light-theme .add-transaction-modal input:focus,
+body.light-theme .modal-content input:focus,
+body.light-theme .modal-content select:focus {
+    border-color: #10b981 !important; /* מסגרת ירוקה כשלוחצים על השדה */
+    outline: none !important;
+}
+
+/* הטקסט המקדים (Placeholder) בתוך השדות יהיה אפור קריא */
+body.light-theme .add-transaction-modal input::placeholder,
+body.light-theme .modal-content input::placeholder {
+    color: #64748b !important;
+}
+
+/* 4. הדגשה ברורה של סוג התנועה: הוצאה (אדום) והכנסה (ירוק) */
+body.light-theme .modal-content .type-selector label,
+body.light-theme .modal-content .radio-group label {
+    color: #0f172a !important;
+}
+
+/* כופה צבעים חיים על המילים "הכנסה" ו"הוצאה" היכן שהן מופיעות */
+body.light-theme .income-label,
+body.light-theme label.income,
+body.light-theme input[value="income"] + label,
+body.light-theme input[value="הכנסה"] + label {
+    color: #059669 !important; /* ירוק חי */
+    font-weight: 800 !important;
+}
+
+body.light-theme .expense-label,
+body.light-theme label.expense,
+body.light-theme input[value="expense"] + label,
+body.light-theme input[value="הוצאה"] + label {
+    color: #dc2626 !important; /* אדום חי */
+    font-weight: 800 !important;
+}
+
+/* 5. כפתורי הפעולה בתחתית החלון */
+body.light-theme .modal-content .cancel-btn {
+    background-color: #f1f5f9 !important; /* רקע אפור לכפתור ביטול */
+    color: #0f172a !important; /* טקסט שחור לביטול */
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .modal-content .btn-submit,
+body.light-theme .modal-content .add-btn {
+    background-color: #10b981 !important; /* ירוק לכפתור ההוספה */
+    color: #ffffff !important; /* טקסט לבן */
+    border: none !important;
+}
+/* ========================================================= */
+/* CLEARCOIN DAYLIGHT - תיקון סופי למודל תנועה חדשה           */
+/* ========================================================= */
+
+/* 1. הסרת כל רקע כהה או מסגרת שחורה מהתוויות (Labels) */
+body.light-theme .modal-content label,
+body.light-theme .add-transaction-modal label,
+body.light-theme .form-group label {
+    background: transparent !important; /* מבטל כל רקע שחור שהיה */
+    background-color: transparent !important;
+    color: #1e293b !important; /* טקסט כהה וברור מאוד */
+    border: none !important; /* מסיר מסגרות שחורות אם היו סביב הטקסט */
+    padding: 2px 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    display: inline-block !important;
+}
+
+/* 2. ניקוי השדות עצמם (Inputs) שיהיו לבנים ונקיים */
+body.light-theme .modal-content input,
+body.light-theme .modal-content select,
+body.light-theme .add-transaction-modal input,
+body.light-theme .add-transaction-modal select {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important; /* מסגרת אפורה עדינה במקום שחורה */
+    border-radius: 8px !important;
+}
+
+/* 3. הבטחת קריאות הכותרת הראשית במודל */
+body.light-theme .modal-content h2,
+body.light-theme .add-transaction-modal h2 {
+    background: transparent !important;
+    color: #0f172a !important;
+    margin-bottom: 20px !important;
+    border: none !important;
+}
+
+/* 4. טיפול במעטפת של השדה (אם יש לה רקע שחור) */
+body.light-theme .form-group {
+    background: transparent !important;
+    border: none !important;
 }
